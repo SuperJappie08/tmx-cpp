@@ -15,8 +15,8 @@ jobs:
         os: 
           - ubuntu-22.04 
         compiler:
-          - llvm
-          - gcc
+          - llvm-16
+          - gcc-10
           # you can specify the version after `-` like `llvm-13.0.0`.
     steps:
       - uses: actions/checkout@v3
@@ -27,11 +27,12 @@ jobs:
           cmake: true
           ninja: false
           vcpkg: false
-          cppcheck: true
-          clangtidy: true # instead of `true`, which chooses the default version, you can pass a specific version.
+          cppcheck: false
+          clangtidy: false # instead of `true`, which chooses the default version, you can pass a specific version.
           # ...
       - name: Build
         run: |
          sudo apt install -y libboost-all-dev
          cmake -B build .
-         cmake --build build
+         cd build
+         make

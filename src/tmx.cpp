@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <ranges>
 TMX::TMX(/* args */) : parsePool(10)
 {
 }
