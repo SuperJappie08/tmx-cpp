@@ -12,10 +12,11 @@ jobs:
       - name: Infer
         run: |
             sudo apt update
-            sudo apt install libboost-all-dev -y
-            cmake -B build
-            cd build
-            infer -- make
+            sudo apt install libboost-all-dev -y cmake gcc-10 g++-10
+            mkdir build && cd build
+            cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
+            make
+            infer capture --compilation-database compile_commands.json --keep-going
       - name: Check Infer report
         uses: srz-zumix/reviewdog-action-infer@v1
         with:
