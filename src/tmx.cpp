@@ -198,7 +198,7 @@ void TMX::sendPing()
 {
 
     static auto i = 0;
-    auto message = std::vector<uint8_t>{TMX::MESSAGE_TYPE::PING, i};
+    auto message = std::vector<uint8_t>{TMX::MESSAGE_TYPE::PING, (uint8_t)i};
     i++;
     this->sendMessage(message);
 
