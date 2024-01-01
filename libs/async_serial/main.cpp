@@ -16,7 +16,8 @@
 //         serial.writeString("Hello world\r\n");
 
 //         //Simulate doing something else while the serial device replies.
-//         //When the serial device replies, the second thread stores the received
+//         //When the serial device replies, the second thread stores the
+//         received
 //         //data in a buffer.
 //         this_thread::sleep_for(chrono::seconds(2));
 
@@ -25,7 +26,7 @@
 //         cout<<serial.readStringUntil("\r\n")<<endl;
 
 //         serial.close();
-  
+
 //     } catch(boost::system::system_error& e)
 //     {
 //         cout<<"Error: "<<e.what()<<endl;

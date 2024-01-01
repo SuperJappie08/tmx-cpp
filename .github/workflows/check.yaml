@@ -11,6 +11,7 @@ jobs:
         uses: srz-zumix/setup-infer@v1
       - name: Infer
         run: |
+            sudo apt update
             sudo apt install libboost-all-dev
             cmake -B build
             cd build
