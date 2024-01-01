@@ -11,6 +11,8 @@ jobs:
         uses: srz-zumix/setup-infer@v1
       - name: Infer
         run: |
+            cmake -B build
+            cd build
             infer -- make
       - name: Check Infer report
         uses: srz-zumix/reviewdog-action-infer@v1
