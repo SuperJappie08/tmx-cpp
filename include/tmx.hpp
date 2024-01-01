@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AsyncSerial.h"
+#include "sensors.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -11,7 +12,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 // void callback(const char *data, size_t len);
 using callback_func = std::function<void(std::vector<uint8_t>)>;
 using callback_vec = std::vector<callback_func>;
@@ -63,6 +63,7 @@ public:
   void parseOne_task(std::vector<uint8_t> &buffer);
   boost::asio::thread_pool parsePool;
   void stop();
+  Sensors sensors;
 
 public:
   TMX(/* args */);

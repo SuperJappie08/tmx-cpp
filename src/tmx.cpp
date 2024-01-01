@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
-TMX::TMX(/* args */) : parsePool(10) {}
+TMX::TMX(/* args */) : parsePool(10), sensors(this) {}
 
 TMX::~TMX() {}
 
@@ -165,7 +165,29 @@ void TMX::parseOne_task(std::vector<uint8_t> &message) {
   case TMX::MESSAGE_IN_TYPE::DEBUG_PRINT: {
     std::ranges::for_each(this->debug_print_callbacks,
                           [message](auto callback) { callback(message); });
-  }
+    std::cout << "Debug print: " << std::hex << (uint)message[1] << " "
+              << std::hex << (uint)message[2] << std::endl;
+  } break;
+  case TMX::MESSAGE_IN_TYPE::SERIAL_LOOP_BACK_REPORT:
+    std::cout << "Serial loopback not implemented" << std::endl;
+    break;
+  case TMX::MESSAGE_IN_TYPE::DHT_REPORT: {
+    std::ranges::for_each(this->dht_callbacks,
+                          [message](auto callback) { callback(message); });
+  } break;
+  case TMX::MESSAGE_IN_TYPE::SPI_REPORT: {
+    std::ranges::for_each(this->spi_callbacks,
+                          [message](auto callback) { callback(message); });
+  } break;
+  case TMX::MESSAGE_IN_TYPE::SENSOR_REPORT: {
+    std::ranges::for_each(this->sensor_callbacks,
+                          [message](auto callback) { callback(message); });
+  } break;
+  case TMX::MESSAGE_IN_TYPE::MODULE_REPORT: {
+    std::ranges::for_each(this->module_callbacks,
+                          [message](auto callback) { callback(message); });
+  } break;
+
   default:
     break;
   }

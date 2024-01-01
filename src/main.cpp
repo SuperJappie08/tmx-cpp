@@ -51,7 +51,13 @@ int main(int argc, char *argv[]) {
       tmx.digitalWrite(pin, 0);
       this_thread::sleep_for(chrono::milliseconds(sl));
     }
-
+    tmx.sensors.add_adxl345(0x53, [](auto data) {
+      std::cout << "adxl345 callback" << std::endl;
+      for (auto i : data) {
+        std::cout << std::hex << (int)i << " ";
+      }
+      std::cout << std::endl;
+    });
     this_thread::sleep_for(chrono::seconds(20));
 
     // Always returns immediately. If the terminator \r\n has not yet
