@@ -138,7 +138,7 @@ public:
   void sendMessage(TMX::MESSAGE_TYPE type, const std::vector<uint8_t> &message);
   // Normal functions for use by the user:
   void setPinMode(uint8_t pin, TMX::PIN_MODES mode, bool reporting = true,
-                  uint16_t analog_differential = 1);
+                  uint16_t analog_differential = 0);
   void digitalWrite(uint8_t pin, bool value);
   void pwmWrite(uint8_t pin, uint16_t value);
   void attach_encoder(uint8_t pin_A, uint8_t pin_B,

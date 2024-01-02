@@ -9,6 +9,8 @@
 #include <utility>
 TMX::TMX(std::string port) : parsePool(10), sensors(this) {
   this->serial = new CallbackAsyncSerial(port, 115200);
+  this->serial->setCallback(
+      [this](const char *data, size_t len) { this->callback(data, len); });
 }
 
 TMX::~TMX() {}
