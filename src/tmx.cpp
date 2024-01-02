@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <ranges>
+// #include <ranges>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -72,8 +72,9 @@ void TMX::parseOne_task(std::vector<uint8_t> &message) {
   auto type = (TMX::MESSAGE_IN_TYPE)buffer[1];
   switch (type) {
   case TMX::MESSAGE_IN_TYPE::PONG_REPORT: {
-    std::ranges::for_each(this->ping_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->ping_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::FIRMWARE_REPORT:
     std::cout << "firmware version: " << (int)message[2] << '.'
@@ -89,82 +90,83 @@ void TMX::parseOne_task(std::vector<uint8_t> &message) {
   case TMX::MESSAGE_IN_TYPE::DIGITAL_REPORT: {
     auto pin = message[2];
     auto value = message[3];
-    std::ranges::for_each( // filter, get callback, call callback
-        std::ranges::views::filter(
-            this->digital_callbacks_pin,
-            [pin](auto callback) { return callback.first == pin; }) |
-            std::ranges::views::transform(
-                [](auto callback) { return callback.second; }),
-        [pin, value](auto callback) { callback(pin, value); });
+    for (const auto &callback : this->digital_callbacks_pin) {
+      if (callback.first == pin) {
+        callback.second(pin, value);
+      }
+    }
 
     // call the callbacks with the normal message. Should use the other one for
     // normal use.
-    std::ranges::for_each(this->digital_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->digital_callbacks) {
+      callback(message);
+    }
   }
   case TMX::MESSAGE_IN_TYPE::ANALOG_REPORT: {
     auto pin = message[2];
     auto value = (message[3] << 8) | message[4];
-    std::ranges::for_each( // filter, get callback, call callback
-        std::ranges::views::filter(
-            this->analog_callbacks_pin,
-            [pin](auto callback) { return callback.first == pin; }) |
-            std::ranges::views::transform(
-                [](auto callback) { return callback.second; }),
-        [pin, value](auto callback) { callback(pin, value); });
+    for (const auto &callback : this->analog_callbacks_pin) {
+      if (callback.first == pin) {
+        callback.second(pin, value);
+      }
+    }
 
     // call the callbacks with the normal message. Should use the other one for
     // normal use.
-    std::ranges::for_each(this->analog_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->analog_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::SERVO_UNAVAILABLE: {
-    std::ranges::for_each(this->servo_unavailable_callbacks,
-                          [&message](auto callback) { callback(message); });
+    for (const auto &callback : this->servo_unavailable_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::I2C_WRITE_REPORT: {
-    std::ranges::for_each(this->i2c_write_callbacks,
-                          [&message](auto callback) { callback(message); });
+    for (const auto &callback : this->i2c_write_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::I2C_READ_FAILED: {
-    std::ranges::for_each(this->i2c_read_failed_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->i2c_read_failed_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::I2C_READ_REPORT: {
-    std::ranges::for_each(this->i2c_read_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->i2c_read_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::SONAR_DISTANCE: {
     auto pin = message[2];
     auto value =
         (message[3] << 8) | message[4]; // TODO: check if this is correct
-    std::ranges::for_each(              // filter, get callback, call callback
-        std::ranges::views::filter(
-            this->sonar_callbacks_pin,
-            [pin](auto callback) { return callback.first == pin; }) |
-            std::ranges::views::transform(
-                [](auto callback) { return callback.second; }),
-        [pin, value](auto callback) { callback(pin, value); });
-    std::ranges::for_each(this->sonar_distance_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->sonar_callbacks_pin) {
+      if (callback.first == pin) {
+        callback.second(pin, value);
+      }
+    }
+    for (const auto &callback : this->sonar_distance_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::ENCODER_REPORT: {
     auto pin = message[2];
     auto value =
         (message[3] << 8) | message[4]; // TODO: check if this is correct
-    std::ranges::for_each(              // filter, get callback, call callback
-        std::ranges::views::filter(
-            this->encoder_callbacks_pin,
-            [pin](auto callback) { return callback.first == pin; }) |
-            std::ranges::views::transform(
-                [](auto callback) { return callback.second; }),
-        [pin, value](auto callback) { callback(pin, value); });
-    std::ranges::for_each(this->encoder_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->encoder_callbacks_pin) {
+      if (callback.first == pin) {
+        callback.second(pin, value);
+      }
+    }
+    for (const auto &callback : this->encoder_callbacks) {
+      callback(message);
+    }
   }
   case TMX::MESSAGE_IN_TYPE::DEBUG_PRINT: {
-    std::ranges::for_each(this->debug_print_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->debug_print_callbacks) {
+      callback(message);
+    }
     std::cout << "Debug print: " << std::hex << (uint)message[1] << " "
               << std::hex << (uint)message[2] << std::endl;
   } break;
@@ -172,20 +174,24 @@ void TMX::parseOne_task(std::vector<uint8_t> &message) {
     std::cout << "Serial loopback not implemented" << std::endl;
     break;
   case TMX::MESSAGE_IN_TYPE::DHT_REPORT: {
-    std::ranges::for_each(this->dht_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->dht_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::SPI_REPORT: {
-    std::ranges::for_each(this->spi_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->spi_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::SENSOR_REPORT: {
-    std::ranges::for_each(this->sensor_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->sensor_callbacks) {
+      callback(message);
+    }
   } break;
   case TMX::MESSAGE_IN_TYPE::MODULE_REPORT: {
-    std::ranges::for_each(this->module_callbacks,
-                          [message](auto callback) { callback(message); });
+    for (const auto &callback : this->module_callbacks) {
+      callback(message);
+    }
   } break;
 
   default:
