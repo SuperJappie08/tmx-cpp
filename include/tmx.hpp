@@ -66,7 +66,7 @@ public:
   Sensors sensors;
 
 public:
-  TMX(/* args */);
+  TMX(std::string port = "/dev/ttyACM0");
   ~TMX();
   enum MESSAGE_TYPE : uint8_t {
     SERIAL_LOOP_BACK = 0,

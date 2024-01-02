@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
-TMX::TMX(/* args */) : parsePool(10), sensors(this) {}
+TMX::TMX(std::string port) : parsePool(10), sensors(this) {
+  this->serial = new CallbackAsyncSerial(port, 115200);
+}
 
 TMX::~TMX() {}
 
