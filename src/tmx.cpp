@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
+#include <boost/thread.hpp>
 TMX::TMX(std::string port) : parsePool(boost::thread::hardware_concurrency()), sensors(this) {
   this->serial = new CallbackAsyncSerial(port, 115200);
   this->serial->setCallback(

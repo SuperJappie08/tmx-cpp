@@ -24,7 +24,7 @@ class TMX
 public:
   enum MESSAGE_IN_TYPE : uint8_t;
   enum MESSAGE_TYPE : uint8_t;
-  static std::atomic_uint s_pending{};
+  std::atomic_uint s_pending;
 
 public:
   std::vector<uint8_t> buffer;
