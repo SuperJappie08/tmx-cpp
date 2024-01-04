@@ -19,8 +19,7 @@ using callback_func_pin = std::function<void(uint8_t, uint8_t)>;
 using callback_func_pin16 = std::function<void(uint8_t, uint16_t)>;
 using callback_func_pin_int = std::function<void(uint8_t, int8_t)>;
 
-class TMX
-{
+class TMX {
 public:
   enum MESSAGE_IN_TYPE : uint8_t;
   enum MESSAGE_TYPE : uint8_t;
@@ -54,15 +53,15 @@ public:
   std::vector<std::pair<uint8_t, callback_func_pin16>> sonar_callbacks_pin;
 
   void add_callback(MESSAGE_IN_TYPE type,
-                    std::function<void(std::vector<uint8_t>)> callback);
+                    std::function<void(const std::vector<uint8_t> &)> callback);
   void add_digital_callback(uint8_t pin,
                             std::function<void(uint8_t, uint8_t)> callback);
   void add_analog_callback(uint8_t pin,
                            std::function<void(uint8_t, uint16_t)> callback);
 
   void parse(std::vector<uint8_t> &buffer);
-  void parseOne(std::vector<uint8_t> &buffer);
-  void parseOne_task(std::vector<uint8_t> &buffer);
+  void parseOne(const std::vector<uint8_t> &buffer);
+  void parseOne_task(const std::vector<uint8_t> &buffer);
   boost::asio::thread_pool parsePool;
   void stop();
   Sensors sensors;
@@ -70,8 +69,7 @@ public:
 public:
   TMX(std::string port = "/dev/ttyACM0");
   ~TMX();
-  enum MESSAGE_TYPE : uint8_t
-  {
+  enum MESSAGE_TYPE : uint8_t {
     SERIAL_LOOP_BACK = 0,
     SET_PIN_MODE = 1,
     DIGITAL_WRITE = 2,
@@ -108,8 +106,7 @@ public:
     MODULE_NEW = 33,
     MODULE_DATA = 34
   };
-  enum MESSAGE_IN_TYPE : uint8_t
-  {
+  enum MESSAGE_IN_TYPE : uint8_t {
     SERIAL_LOOP_BACK_REPORT = 0,
     DIGITAL_REPORT = 2,
     ANALOG_REPORT = 3,
@@ -128,8 +125,7 @@ public:
     PONG_REPORT = 32,
     MODULE_REPORT = 34
   };
-  enum PIN_MODES : uint8_t
-  {
+  enum PIN_MODES : uint8_t {
     DIGITAL_INPUT = 0,
     DIGITAL_OUTPUT = 1,
     PWM_OUTPUT = 2,

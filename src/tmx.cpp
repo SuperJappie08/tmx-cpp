@@ -3,12 +3,13 @@
 #include <cassert>
 #include <iostream>
 // #include <ranges>
+#include <boost/thread.hpp>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
 #include <utility>
-#include <boost/thread.hpp>
-TMX::TMX(std::string port) : parsePool(boost::thread::hardware_concurrency()), sensors(this) {
+TMX::TMX(std::string port)
+    : parsePool(boost::thread::hardware_concurrency()), sensors(this) {
   this->serial = new CallbackAsyncSerial(port, 115200);
   this->serial->setCallback(
       [this](const char *data, size_t len) { this->callback(data, len); });
@@ -64,21 +65,17 @@ void TMX::parse(std::vector<uint8_t> &buffer) {
   buffer.erase(buffer.begin(), buffer.begin() + N);
   this->parseOne(subBuffer);
 }
-void TMX::parseOne(std::vector<uint8_t> &message) {
-  s_pending++;
+void TMX::parseOne(const std::vector<uint8_t> &message) {
   boost::asio::post(this->parsePool,
                     std::bind(&TMX::parseOne_task, this, message));
-  if(s_pending > 4) {
-    std::cout << "pending = " << s_pending << std::endl;
-  }
 }
 
-void TMX::parseOne_task(std::vector<uint8_t> &message) {
+void TMX::parseOne_task(const std::vector<uint8_t> &message) {
   // Note:: this runs on a different thread than any other things.
   // Makes it possible to have longer running callbacks without interfering with
   // other callbacks and reading in data.
-  
-  auto type = (TMX::MESSAGE_IN_TYPE)buffer[1];
+
+  auto type = (TMX::MESSAGE_IN_TYPE)message[1];
   switch (type) {
   case TMX::MESSAGE_IN_TYPE::PONG_REPORT: {
     for (const auto &callback : this->ping_callbacks) {
@@ -210,8 +207,6 @@ void TMX::parseOne_task(std::vector<uint8_t> &message) {
 }
 
 void TMX::sendPing(uint8_t num) {
-
-  
   auto message = std::vector<uint8_t>{TMX::MESSAGE_TYPE::PING, (uint8_t)num};
   this->sendMessage(message);
 
@@ -255,7 +250,7 @@ void TMX::setPinMode(uint8_t pin, TMX::PIN_MODES mode, bool reporting,
     message = std::vector<uint8_t>{pin, mode};
     break;
   case TMX::PIN_MODES::ANALOG_INPUT:
-    if(pin < 26 || pin > 30) { // only pins 26-30 are analog
+    if (pin < 26 || pin > 30) { // only pins 26-30 are analog
       return;
     }
     pin -= 26;
@@ -275,11 +270,13 @@ void TMX::digitalWrite(uint8_t pin, bool value) {
   this->sendMessage(TMX::MESSAGE_TYPE::DIGITAL_WRITE, message);
 }
 void TMX::pwmWrite(uint8_t pin, uint16_t value) {
-  std::vector<uint8_t> message = {pin, (uint8_t)(value>>8), (uint8_t)(value&0xFF)};
+  std::vector<uint8_t> message = {pin, (uint8_t)(value >> 8),
+                                  (uint8_t)(value & 0xFF)};
   this->sendMessage(TMX::MESSAGE_TYPE::PWM_WRITE, message);
 }
-void TMX::add_callback(MESSAGE_IN_TYPE type,
-                       std::function<void(std::vector<uint8_t>)> callback) {
+void TMX::add_callback(
+    MESSAGE_IN_TYPE type,
+    std::function<void(const std::vector<uint8_t> &)> callback) {
   switch (type) {
   case TMX::MESSAGE_IN_TYPE::PONG_REPORT:
     this->ping_callbacks.push_back(callback);
@@ -344,11 +341,12 @@ void TMX::add_digital_callback(uint8_t pin,
 
 void TMX::add_analog_callback(uint8_t pin,
                               std::function<void(uint8_t, uint16_t)> callback) {
-  if(pin < 26 || pin > 30) { // only pins 26-30 are analog
+  if (pin < 26 || pin > 30) { // only pins 26-30 are analog
     return;
   }
-  this->analog_callbacks_pin.push_back({pin-26, callback});
-  std::cout << "analog_callbacks_pin size = " << this->analog_callbacks_pin.size() << std::endl;
+  this->analog_callbacks_pin.push_back({pin - 26, callback});
+  std::cout << "analog_callbacks_pin size = "
+            << this->analog_callbacks_pin.size() << std::endl;
 }
 
 void TMX::attach_encoder(uint8_t pin_A, uint8_t pin_B,
@@ -364,9 +362,8 @@ void TMX::attach_sonar(uint8_t trigger, uint8_t echo,
 }
 
 void TMX::setScanDelay(uint8_t delay) {
-  if(delay<5) {
+  if (delay < 5) {
     delay = 5;
   }
-  this->sendMessage(TMX::MESSAGE_TYPE::SET_SCAN_DELAY,
-                     {delay});
+  this->sendMessage(TMX::MESSAGE_TYPE::SET_SCAN_DELAY, {delay});
 }
