@@ -133,7 +133,7 @@ public:
     ANALOG_INPUT = 5,
   };
   void callback(const char *data, size_t len);
-  void sendPing();
+  void sendPing(uint8_t num = 0);
   void sendMessage(const std::vector<uint8_t> &message);
   void sendMessage(TMX::MESSAGE_TYPE type, const std::vector<uint8_t> &message);
   // Normal functions for use by the user:
@@ -145,5 +145,6 @@ public:
                       callback_func_pin_int callback);
   void attach_sonar(uint8_t trigger, uint8_t echo,
                     std::function<void(uint8_t, uint16_t)> callback);
+  void setScanDelay(uint8_t delay);
   CallbackAsyncSerial *serial;
 };
