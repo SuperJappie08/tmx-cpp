@@ -19,10 +19,12 @@ using callback_func_pin = std::function<void(uint8_t, uint8_t)>;
 using callback_func_pin16 = std::function<void(uint8_t, uint16_t)>;
 using callback_func_pin_int = std::function<void(uint8_t, int8_t)>;
 
-class TMX {
+class TMX
+{
 public:
   enum MESSAGE_IN_TYPE : uint8_t;
   enum MESSAGE_TYPE : uint8_t;
+  static std::atomic_uint s_pending{};
 
 public:
   std::vector<uint8_t> buffer;
@@ -68,7 +70,8 @@ public:
 public:
   TMX(std::string port = "/dev/ttyACM0");
   ~TMX();
-  enum MESSAGE_TYPE : uint8_t {
+  enum MESSAGE_TYPE : uint8_t
+  {
     SERIAL_LOOP_BACK = 0,
     SET_PIN_MODE = 1,
     DIGITAL_WRITE = 2,
@@ -105,7 +108,8 @@ public:
     MODULE_NEW = 33,
     MODULE_DATA = 34
   };
-  enum MESSAGE_IN_TYPE : uint8_t {
+  enum MESSAGE_IN_TYPE : uint8_t
+  {
     SERIAL_LOOP_BACK_REPORT = 0,
     DIGITAL_REPORT = 2,
     ANALOG_REPORT = 3,
@@ -124,7 +128,8 @@ public:
     PONG_REPORT = 32,
     MODULE_REPORT = 34
   };
-  enum PIN_MODES : uint8_t {
+  enum PIN_MODES : uint8_t
+  {
     DIGITAL_INPUT = 0,
     DIGITAL_OUTPUT = 1,
     PWM_OUTPUT = 2,

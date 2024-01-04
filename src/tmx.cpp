@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
-TMX::TMX(std::string port) : parsePool(10), sensors(this) {
+TMX::TMX(std::string port) : parsePool(boost::thread::hardware_concurrency()), sensors(this) {
   this->serial = new CallbackAsyncSerial(port, 115200);
   this->serial->setCallback(
       [this](const char *data, size_t len) { this->callback(data, len); });
@@ -64,8 +64,12 @@ void TMX::parse(std::vector<uint8_t> &buffer) {
   this->parseOne(subBuffer);
 }
 void TMX::parseOne(std::vector<uint8_t> &message) {
+  s_pending++;
   boost::asio::post(this->parsePool,
                     std::bind(&TMX::parseOne_task, this, message));
+  if(s_pending > 4) {
+    std::cout << "pending = " << s_pending << std::endl;
+  }
 }
 
 void TMX::parseOne_task(std::vector<uint8_t> &message) {
@@ -201,6 +205,7 @@ void TMX::parseOne_task(std::vector<uint8_t> &message) {
   default:
     break;
   }
+  s_pending--;
 }
 
 void TMX::sendPing(uint8_t num) {
