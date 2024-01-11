@@ -30,7 +30,7 @@
 #include "AsyncSerial.h"
 
 #include <algorithm>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/shared_array.hpp>
 #include <mutex>
 #include <string>
