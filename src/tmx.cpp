@@ -203,7 +203,6 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
   default:
     break;
   }
-  s_pending--;
 }
 
 void TMX::sendPing(uint8_t num) {
