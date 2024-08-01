@@ -1,8 +1,11 @@
 #include "modules/PCA9685.hpp"
 
-PCA9685_module::PCA9685_module(
-    std::function<void(std::vector<uint8_t>)> send_module) {
-  this->send_module = send_module;
+PCA9685_module::PCA9685_module(uint8_t i2c_port, uint8_t address,
+                               int frequency) {
+  this->i2c_port = i2c_port;
+  this->address = address;
+  this->frequency = frequency;
+  type = MODULE_TYPE::PCA9685;
 }
 
 bool PCA9685_module::set_pwm(uint8_t channel, uint16_t high, uint16_t low) {
@@ -24,4 +27,19 @@ bool PCA9685_module::set_multiple_pwm(std::vector<PWM_val> pwm_vals) {
   }
   this->send_module(data);
   return true;
+}
+
+std::vector<uint8_t> PCA9685_module::init_data() {
+  return {this->i2c_port, this->address, (uint8_t)(this->frequency & 0xFF),
+          (uint8_t)(this->frequency >> 8)};
+}
+
+void PCA9685_module::data_callback(std::vector<uint8_t> data) {
+  // it should not receive any data
+  return;
+}
+
+void PCA9685_module::attach_send_module(
+    std::function<void(std::vector<uint8_t>)> send_module) {
+  this->send_module = send_module;
 }

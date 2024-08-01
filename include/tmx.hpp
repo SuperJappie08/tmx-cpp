@@ -1,25 +1,24 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "AsyncSerial.h"
+#include "modules.hpp"
+#include "sensors.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <string>
 #include <utility>
 #include <vector>
-#include "AsyncSerial.h"
-#include "sensors.hpp"
-#include "modules.hpp"
-using callback_func = std::function<void (std::vector<uint8_t>)>;
+using callback_func = std::function<void(std::vector<uint8_t>)>;
 using callback_vec = std::vector<callback_func>;
-using callback_func_pin = std::function<void (uint8_t, uint8_t)>;
-using callback_func_pin16 = std::function<void (uint8_t, uint16_t)>;
-using callback_func_pin_int = std::function<void (uint8_t, int8_t)>;
+using callback_func_pin = std::function<void(uint8_t, uint8_t)>;
+using callback_func_pin16 = std::function<void(uint8_t, uint16_t)>;
+using callback_func_pin_int = std::function<void(uint8_t, int8_t)>;
 
-class TMX
-{
+class TMX {
 public:
   enum MESSAGE_IN_TYPE : uint8_t;
   enum MESSAGE_TYPE : uint8_t;
@@ -48,22 +47,19 @@ public:
   std::vector<std::pair<uint8_t, callback_func_pin>> digital_callbacks_pin;
   std::vector<std::pair<uint8_t, callback_func_pin16>> analog_callbacks_pin;
   std::vector<std::pair<uint8_t, callback_func_pin_int>>
-  encoder_callbacks_pin;     // todo check types
+      encoder_callbacks_pin; // todo check types
   std::vector<std::pair<uint8_t, callback_func_pin16>> sonar_callbacks_pin;
 
-  void add_callback(
-    MESSAGE_IN_TYPE type,
-    std::function<void(const std::vector<uint8_t> &)> callback);
-  void add_digital_callback(
-    uint8_t pin,
-    std::function<void(uint8_t, uint8_t)> callback);
-  void add_analog_callback(
-    uint8_t pin,
-    std::function<void(uint8_t, uint16_t)> callback);
+  void add_callback(MESSAGE_IN_TYPE type,
+                    std::function<void(const std::vector<uint8_t> &)> callback);
+  void add_digital_callback(uint8_t pin,
+                            std::function<void(uint8_t, uint8_t)> callback);
+  void add_analog_callback(uint8_t pin,
+                           std::function<void(uint8_t, uint16_t)> callback);
 
-  void parse(std::vector<uint8_t> & buffer);
-  void parseOne(const std::vector<uint8_t> & buffer);
-  void parseOne_task(const std::vector<uint8_t> & buffer);
+  void parse(std::vector<uint8_t> &buffer);
+  void parseOne(const std::vector<uint8_t> &buffer);
+  void parseOne_task(const std::vector<uint8_t> &buffer);
   boost::asio::thread_pool parsePool;
   void stop();
   Sensors sensors;
@@ -71,8 +67,7 @@ public:
 public:
   TMX(std::string port = "/dev/ttyACM0");
   ~TMX();
-  enum MESSAGE_TYPE : uint8_t
-  {
+  enum MESSAGE_TYPE : uint8_t {
     SERIAL_LOOP_BACK = 0,
     SET_PIN_MODE = 1,
     DIGITAL_WRITE = 2,
@@ -109,8 +104,7 @@ public:
     MODULE_NEW = 33,
     MODULE_DATA = 34
   };
-  enum MESSAGE_IN_TYPE : uint8_t
-  {
+  enum MESSAGE_IN_TYPE : uint8_t {
     SERIAL_LOOP_BACK_REPORT = 0,
     DIGITAL_REPORT = 2,
     ANALOG_REPORT = 3,
@@ -129,8 +123,7 @@ public:
     PONG_REPORT = 32,
     MODULE_REPORT = 34
   };
-  enum PIN_MODES : uint8_t
-  {
+  enum PIN_MODES : uint8_t {
     DIGITAL_INPUT = 0,
     DIGITAL_OUTPUT = 1,
     PWM_OUTPUT = 2,
@@ -138,22 +131,19 @@ public:
     DIGITAL_INPUT_PULL_DOWN = 4,
     ANALOG_INPUT = 5,
   };
-  void callback(const char * data, size_t len);
+  void callback(const char *data, size_t len);
   void sendPing(uint8_t num = 0);
-  void sendMessage(const std::vector<uint8_t> & message);
-  void sendMessage(TMX::MESSAGE_TYPE type, const std::vector<uint8_t> & message);
+  void sendMessage(const std::vector<uint8_t> &message);
+  void sendMessage(TMX::MESSAGE_TYPE type, const std::vector<uint8_t> &message);
   // Normal functions for use by the user:
-  void setPinMode(
-    uint8_t pin, TMX::PIN_MODES mode, bool reporting = true,
-    uint16_t analog_differential = 0);
+  void setPinMode(uint8_t pin, TMX::PIN_MODES mode, bool reporting = true,
+                  uint16_t analog_differential = 0);
   void digitalWrite(uint8_t pin, bool value);
   void pwmWrite(uint8_t pin, uint16_t value);
-  void attach_encoder(
-    uint8_t pin_A, uint8_t pin_B,
-    callback_func_pin_int callback);
-  void attach_sonar(
-    uint8_t trigger, uint8_t echo,
-    std::function<void(uint8_t, uint16_t)> callback);
+  void attach_encoder(uint8_t pin_A, uint8_t pin_B,
+                      callback_func_pin_int callback);
+  void attach_sonar(uint8_t trigger, uint8_t echo,
+                    std::function<void(uint8_t, uint16_t)> callback);
   void setScanDelay(uint8_t delay);
-  CallbackAsyncSerial * serial;
+  CallbackAsyncSerial *serial;
 };

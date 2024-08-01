@@ -16,15 +16,27 @@ int Modules::add_module(MODULE_TYPE type, std::vector<uint8_t> data,
   return modules.size() - 1;
 }
 
-std::shared_ptr<PCA9685_module>
-Modules::add_pca9685(uint8_t i2c_port, uint8_t address, int frequency) {
+void Modules::add_mod(std::shared_ptr<Module_type> module) {
+  auto mod_num = this->modules.size();
+  auto init_data = module->init_data();
 
-  auto mod_num = add_module(MODULE_TYPE::PCA9685, {}, empty_callback);
-  std::shared_ptr<PCA9685_module> pca9685 = std::make_shared<PCA9685_module>(
-      [this, mod_num](std::vector<uint8_t> data) {
-        this->send_module(mod_num, data);
-      });
-  return pca9685;
+  auto act_mod_num = add_module(
+      module->type, init_data,
+      std::bind(&Module_type::data_callback, module, std::placeholders::_1));
+  module->attach_send_module([this, act_mod_num](std::vector<uint8_t> data) {
+    this->send_module(act_mod_num, data);
+  });
+  if (act_mod_num != mod_num) {
+    std::cout << "Error adding module" << std::endl;
+    return;
+  }
+}
+
+void test() {
+  std::shared_ptr<PCA9685_module> pca9685 =
+      std::make_shared<PCA9685_module>(1, 2, 3);
+  Modules modules(nullptr);
+  modules.add_mod(pca9685);
 }
 
 // void Sensors::add_adxl345(uint8_t i2c_port,
