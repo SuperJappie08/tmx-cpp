@@ -230,7 +230,7 @@ void TMX::sendMessage(TMX::MESSAGE_TYPE type,
                      {(char)(charMessage.size() + 1), (char)type});
   std::cout << "charMessage = ";
   for (auto i : charMessage) {
-    std::cout << std::hex << (int)i << " ";
+    std::cout << std::hex << (uint)(i & 0xFF) << " ";
   }
   std::cout << std::endl;
   serial->write(charMessage);
