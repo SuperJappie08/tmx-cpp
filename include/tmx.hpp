@@ -11,7 +11,7 @@
 #include <vector>
 #include "AsyncSerial.h"
 #include "sensors.hpp"
-
+#include "modules.hpp"
 using callback_func = std::function<void (std::vector<uint8_t>)>;
 using callback_vec = std::vector<callback_func>;
 using callback_func_pin = std::function<void (uint8_t, uint8_t)>;
