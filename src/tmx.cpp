@@ -113,7 +113,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     auto value = (message[3] << 8) | message[4];
     for (const auto &callback : this->analog_callbacks_pin) {
       if (callback.first == pin) {
-        callback.second(pin+26, value);
+        callback.second(pin + 26, value);
       }
     }
 
@@ -369,7 +369,7 @@ void TMX::setScanDelay(uint8_t delay) {
 
 void TMX::stop() {
   // this->sendMessage(TMX::MESSAGE_TYPE::STOP, {});
-  if(this->serial->isOpen() ) {
+  if (this->serial->isOpen()) {
     this->serial->close();
   }
   this->parsePool.stop();

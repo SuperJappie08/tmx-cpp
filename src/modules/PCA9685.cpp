@@ -1,12 +1,14 @@
 #include "modules/PCA9685.hpp"
 
-PCA9685_module::PCA9685_module(std::function<void(std::vector<uint8_t>)> send_module) {
+PCA9685_module::PCA9685_module(
+    std::function<void(std::vector<uint8_t>)> send_module) {
   this->send_module = send_module;
 }
 
 bool PCA9685_module::set_pwm(uint8_t channel, uint16_t high, uint16_t low) {
-  std::vector<uint8_t> data = {channel, (uint8_t)(low & 0xFF), (uint8_t)(low >> 8),
-                                (uint8_t)(high & 0xFF), (uint8_t)(high >> 8)};
+  std::vector<uint8_t> data = {channel, (uint8_t)(low & 0xFF),
+                               (uint8_t)(low >> 8), (uint8_t)(high & 0xFF),
+                               (uint8_t)(high >> 8)};
   this->send_module(data);
   return true;
 }
