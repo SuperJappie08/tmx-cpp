@@ -20,9 +20,9 @@ public:
                  std::function<void(std::vector<uint8_t>)> callback);
   std::vector<std::pair<MODULE_TYPE, std::function<void(std::vector<uint8_t>)>>>
       modules;
-  TMX *tmx;
+  std::shared_ptr<TMX> tmx;
 
-  Modules(TMX *tmx);
+  Modules(std::shared_ptr<TMX> tmx);
   void callback(std::vector<uint8_t> data);
 
   bool send_module(uint8_t module_num, std::vector<uint8_t> data);

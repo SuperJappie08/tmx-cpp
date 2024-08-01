@@ -1,6 +1,6 @@
 #include "modules.hpp"
 
-Modules::Modules(TMX *tmx) {
+Modules::Modules(std::shared_ptr<TMX> tmx) {
   this->tmx = tmx;
   tmx->add_callback(TMX::MESSAGE_IN_TYPE::MODULE_REPORT,
                     std::bind(&Modules::callback, this, std::placeholders::_1));
