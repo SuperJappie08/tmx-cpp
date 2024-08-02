@@ -375,3 +375,12 @@ void TMX::stop() {
   this->parsePool.stop();
   this->parsePool.join();
 }
+
+bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
+  if (sda == 0 || scl == 0 || port == 0 || sda == scl) {
+    return false;
+  }
+  // TODO: add a check for pins, store some map of current pins
+  this->sendMessage(TMX::MESSAGE_TYPE::I2C_BEGIN, {port, sda, scl});
+  return true;
+}

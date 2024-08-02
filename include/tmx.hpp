@@ -145,5 +145,6 @@ public:
   void attach_sonar(uint8_t trigger, uint8_t echo,
                     std::function<void(uint8_t, uint16_t)> callback);
   void setScanDelay(uint8_t delay);
+  bool setI2CPins(uint8_t sda, uint8_t scl, uint8_t port);
   CallbackAsyncSerial *serial;
 };
