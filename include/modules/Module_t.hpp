@@ -10,4 +10,5 @@ public:
   MODULE_TYPE type;
   virtual void
   attach_send_module(std::function<void(std::vector<uint8_t>)> send_module) = 0;
+  virtual ~Module_type() = default;
 };

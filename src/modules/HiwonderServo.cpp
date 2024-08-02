@@ -20,7 +20,7 @@ HiwonderServo_module::HiwonderServo_module(
   type = MODULE_TYPE::HIWONDER_SERVO;
 }
 
-bool HiwonderServo_module::set_single_sero(uint8_t servo_id, uint16_t angle,
+bool HiwonderServo_module::set_single_servo(uint8_t servo_id, uint16_t angle,
                                            uint16_t time) {
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_SERVO,
                                1,
@@ -184,4 +184,9 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
     break;
   }
   return;
+}
+
+void HiwonderServo_module::attach_send_module(
+    std::function<void(std::vector<uint8_t>)> send_module) {
+  this->send_module = send_module;
 }

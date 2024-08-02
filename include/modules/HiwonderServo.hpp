@@ -53,7 +53,7 @@ public:
   void data_callback(
       std::vector<uint8_t> data); // when receiving data from the servos back
 
-  bool set_single_sero(uint8_t servo_id, uint16_t angle, uint16_t time = 100);
+  bool set_single_servo(uint8_t servo_id, uint16_t angle, uint16_t time = 100);
   bool set_multiple_servos(std::vector<std::pair<uint8_t, uint16_t>> servo_vals,
                            uint16_t time = 100);
   bool set_enable_servo(uint8_t servo_id, bool enable);
@@ -73,7 +73,7 @@ public:
   std::function<void(int, bool)> verify_cb;
   std::function<void(int, uint16_t, uint16_t)> range_cb;
   std::function<void(int, uint16_t)> offset_cb;
-
+  void attach_send_module(std::function<void(std::vector<uint8_t>)> send_module);
 private:
   uint8_t uart_port;
   uint8_t rx_pin;
