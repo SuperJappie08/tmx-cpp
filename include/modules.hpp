@@ -16,7 +16,7 @@
 class TMX;
 class Modules {
 public:
-  int add_module(MODULE_TYPE type, std::vector<uint8_t> data,
+  int add_module(uint8_t mod_num, MODULE_TYPE type, std::vector<uint8_t> data,
                  std::function<void(std::vector<uint8_t>)> callback);
   std::vector<std::pair<MODULE_TYPE, std::function<void(std::vector<uint8_t>)>>>
       modules;

@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
-TMX::TMX(std::string port)
-    : parsePool(boost::thread::hardware_concurrency()), sensors(this) {
+TMX::TMX(std::string port) // boost::thread::hardware_concurrency()
+    : parsePool(1), sensors(this) {
   this->serial = new CallbackAsyncSerial(port, 115200);
   this->serial->setCallback(
       [this](const char *data, size_t len) { this->callback(data, len); });
@@ -173,8 +173,14 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     for (const auto &callback : this->debug_print_callbacks) {
       callback(message);
     }
-    std::cout << "Debug print: " << std::hex << (uint)message[1] << " "
-              << std::hex << (uint)message[2] << std::endl;
+    uint16_t val = ((uint16_t)message[3])<<8 | message[4];
+
+    std::cout << "Debug print: " << std::dec << (uint)message[2] << " "
+              << std::dec << (uint16_t)(val)  << std::endl;
+    // std::cout << "debug len:" << std::dec << (uint)message.size() << std::endl;
+    // for(auto i = 0; i < message.size(); i++) {
+    //   std::cout << "debug " << i << ":" << std::dec << (uint)message[i] << std::endl;
+    // }
   } break;
   case TMX::MESSAGE_IN_TYPE::SERIAL_LOOP_BACK_REPORT:
     std::cout << "Serial loopback not implemented" << std::endl;
@@ -195,9 +201,13 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     }
   } break;
   case TMX::MESSAGE_IN_TYPE::MODULE_REPORT: {
+    std::cout << "module report" << std::endl;
     for (const auto &callback : this->module_callbacks) {
+      std::cout << "cb 123" << std::endl;
       callback(message);
     }
+        std::cout << "module report done" << std::endl;
+
   } break;
 
   default:
@@ -377,7 +387,7 @@ void TMX::stop() {
 }
 
 bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
-  if (sda == 0 || scl == 0 || port == 0 || sda == scl) {
+  if (sda == 0 || scl == 0 || sda == scl) {
     return false;
   }
   // TODO: add a check for pins, store some map of current pins
