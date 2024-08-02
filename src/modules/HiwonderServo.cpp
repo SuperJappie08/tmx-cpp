@@ -25,10 +25,11 @@ bool HiwonderServo_module::set_single_servo(uint8_t servo_id, uint16_t angle,
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_SERVO,
                                1,
                                get_servo_num(servo_id),
-                               (uint8_t)(angle & 0xFF),
                                (uint8_t)(angle >> 8),
-                               (uint8_t)(time & 0xFF),
-                               (uint8_t)(time >> 8)};
+                                                              (uint8_t)(angle & 0xFF),
+
+
+                               (uint8_t)(time >> 8),                               (uint8_t)(time & 0xFF)};
   this->send_module(data);
   return true;
 }
@@ -152,14 +153,15 @@ std::vector<uint8_t> HiwonderServo_module::init_data() {
 }
 
 void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
-  auto message_type = (HIWONDER_SERVO_RESPONSES)data[0];
+  
+  auto message_type = (HIWONDER_SERVO_RESPONSES)data[0]; 
   switch (message_type) {
   case HIWONDER_SERVO_RESPONSES::SERVO_POSITION: {
     std::vector<Servo_pos> servo_positions;
     for (auto i = 1; i < data.size(); i += 3) {
       Servo_pos pos;
       pos.id = servo_ids[data[i]];
-      pos.angle = data[i + 1] + (data[i + 2] << 8);
+      pos.angle = data[i + 2] + (data[i + 1] << 8);
       servo_positions.push_back(pos);
     }
     position_cb(servo_positions);
@@ -169,7 +171,7 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
     verify_cb(data[1], data[2]);
     return;
   } break;
-  case HIWONDER_SERVO_RESPONSES::SERVO_RANGE: {
+  case HIWONDER_SERVO_RESPONSES::SERVO_RANGE: { // TODO: wss kloppen deze ook niet...
     range_cb(data[1], data[2] + (data[3] << 8), data[4] + (data[5] << 8));
     return;
   } break;
@@ -179,7 +181,7 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
   } break;
 
   default:
-    std::cout << "Unknown message type from Hiwonder servo: " << message_type
+    std::cout << "Unknown message type from Hiwonder servo: " <<std::dec << (int) message_type
               << std::endl;
     break;
   }

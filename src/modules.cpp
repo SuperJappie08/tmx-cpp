@@ -32,38 +32,11 @@ void Modules::add_mod(std::shared_ptr<Module_type> module) {
   }
 }
 
-void test() {
-  std::shared_ptr<PCA9685_module> pca9685 =
-      std::make_shared<PCA9685_module>(1, 2, 3);
-  Modules modules(nullptr);
-  modules.add_mod(pca9685);
-}
-
-// void Sensors::add_adxl345(uint8_t i2c_port,
-//                           std::function<void(std::vector<uint8_t>)> callback)
-//                           {
-//   add_sensor(SENSOR_TYPE::ADXL345, {i2c_port},
-//              [&callback](std::vector<uint8_t> data) {
-//                // TODO: add adxl parsing
-//                callback(data);
-//              });
-// }
-
-// void Sensors::add_veml6040(uint8_t i2c_port,
-//                            std::function<void(std::vector<uint8_t>)>
-//                            callback) {
-//   add_sensor(SENSOR_TYPE::VEML6040, {i2c_port},
-//              [&callback](std::vector<uint8_t> data) {
-//                // TODO: add veml parsing
-//                callback(data);
-//              });
-// }
-
 void Modules::callback(std::vector<uint8_t> data) {
   
-  uint8_t module_num = data[1]; // TODO: check
-  std::cout << "Modules callback" << module_num << std::endl;
-  this->modules[module_num].second(data);
+  uint8_t module_num = data[2];
+  std::vector<uint8_t> module_data(data.begin() + 4, data.end());
+  this->modules[module_num].second(module_data);
 }
 
 bool Modules::send_module(uint8_t module_num, std::vector<uint8_t> data) {

@@ -200,14 +200,10 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
       callback(message);
     }
   } break;
-  case TMX::MESSAGE_IN_TYPE::MODULE_REPORT: {
-    std::cout << "module report" << std::endl;
-    for (const auto &callback : this->module_callbacks) {
-      std::cout << "cb 123" << std::endl;
+  case TMX::MESSAGE_IN_TYPE::MODULE_REPORT: { 
+    for (const auto &callback : this->module_callbacks) { 
       callback(message);
-    }
-        std::cout << "module report done" << std::endl;
-
+    } 
   } break;
 
   default:
