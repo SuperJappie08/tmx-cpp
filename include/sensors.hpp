@@ -1,22 +1,22 @@
 #pragma once
+#include "sensors/Sensor_t.hpp"
+#include "sensors/Sensor_types.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string>
 #include <utility>
 #include <vector>
-#include "sensors/Sensor_types.hpp"
-#include "sensors/Sensor_t.hpp"
-#include <memory>
 class TMX;
 class Sensors {
 public:
   int add_sensor(uint8_t sens_num, SENSOR_TYPE type, std::vector<uint8_t> data,
-                  std::function<void(std::vector<uint8_t>)> callback);
+                 std::function<void(std::vector<uint8_t>)> callback);
   std::vector<std::pair<SENSOR_TYPE, std::function<void(std::vector<uint8_t>)>>>
       sensors;
   // void add_adxl345(uint8_t i2c_port,
@@ -27,7 +27,7 @@ public:
   std::shared_ptr<TMX> tmx;
   Sensors(std::shared_ptr<TMX> tmx);
   void callback(std::vector<uint8_t> data);
-void add_sens(std::shared_ptr<Sensor_type> module);
+  void add_sens(std::shared_ptr<Sensor_type> module);
   // void add_sensor(std::shared_ptr<Sensor_type> module);
 private:
 };

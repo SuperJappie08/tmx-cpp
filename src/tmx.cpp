@@ -15,10 +15,8 @@
 #define POOL_SIZE boost::thread::hardware_concurrency()
 #endif
 
-TMX::TMX(std::string port)  
-    : parsePool(POOL_SIZE) 
-    {
-  this->serial = std::make_shared< CallbackAsyncSerial>(port, 115200);
+TMX::TMX(std::string port) : parsePool(POOL_SIZE) {
+  this->serial = std::make_shared<CallbackAsyncSerial>(port, 115200);
   this->serial->setCallback(
       [this](const char *data, size_t len) { this->callback(data, len); });
 }
@@ -181,13 +179,14 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     for (const auto &callback : this->debug_print_callbacks) {
       callback(message);
     }
-    uint16_t val = ((uint16_t)message[3])<<8 | message[4];
+    uint16_t val = ((uint16_t)message[3]) << 8 | message[4];
 
     std::cout << "Debug print: " << std::dec << (uint)message[2] << " "
-              << std::dec << (uint16_t)(val)  << std::endl;
-    // std::cout << "debug len:" << std::dec << (uint)message.size() << std::endl;
-    // for(auto i = 0; i < message.size(); i++) {
-    //   std::cout << "debug " << i << ":" << std::dec << (uint)message[i] << std::endl;
+              << std::dec << (uint16_t)(val) << std::endl;
+    // std::cout << "debug len:" << std::dec << (uint)message.size() <<
+    // std::endl; for(auto i = 0; i < message.size(); i++) {
+    //   std::cout << "debug " << i << ":" << std::dec << (uint)message[i] <<
+    //   std::endl;
     // }
   } break;
   case TMX::MESSAGE_IN_TYPE::SERIAL_LOOP_BACK_REPORT:
@@ -208,10 +207,10 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
       callback(message);
     }
   } break;
-  case TMX::MESSAGE_IN_TYPE::MODULE_REPORT: { 
-    for (const auto &callback : this->module_callbacks) { 
+  case TMX::MESSAGE_IN_TYPE::MODULE_REPORT: {
+    for (const auto &callback : this->module_callbacks) {
       callback(message);
-    } 
+    }
   } break;
 
   default:
@@ -383,7 +382,7 @@ void TMX::setScanDelay(uint8_t delay) {
 
 void TMX::stop() {
   // this->sendMessage(TMX::MESSAGE_TYPE::STOP, {});
-  if(!this->serial) {
+  if (!this->serial) {
     return;
   }
   if (this->serial->isOpen()) {

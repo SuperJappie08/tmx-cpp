@@ -73,7 +73,9 @@ public:
   std::function<void(int, bool)> verify_cb;
   std::function<void(int, uint16_t, uint16_t)> range_cb;
   std::function<void(int, uint16_t)> offset_cb;
-  void attach_send_module(std::function<void(std::vector<uint8_t>)> send_module);
+  void
+  attach_send_module(std::function<void(std::vector<uint8_t>)> send_module);
+
 private:
   uint8_t uart_port;
   uint8_t rx_pin;
