@@ -62,7 +62,7 @@ public:
   void parseOne_task(const std::vector<uint8_t> &buffer);
   boost::asio::thread_pool parsePool;
   void stop();
-  Sensors sensors;
+  // Sensors sensors;
 
 public:
   TMX(std::string port = "/dev/ttyACM0");
@@ -146,5 +146,5 @@ public:
                     std::function<void(uint8_t, uint16_t)> callback);
   void setScanDelay(uint8_t delay);
   bool setI2CPins(uint8_t sda, uint8_t scl, uint8_t port);
-  CallbackAsyncSerial *serial;
+  std::shared_ptr<CallbackAsyncSerial> serial;
 };

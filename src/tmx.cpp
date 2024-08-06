@@ -8,9 +8,17 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
-TMX::TMX(std::string port) // boost::thread::hardware_concurrency()
-    : parsePool(1), sensors(this) {
-  this->serial = new CallbackAsyncSerial(port, 115200);
+
+#if __DEBUG__
+#define POOL_SIZE 1
+#else
+#define POOL_SIZE boost::thread::hardware_concurrency()
+#endif
+
+TMX::TMX(std::string port)  
+    : parsePool(POOL_SIZE) 
+    {
+  this->serial = std::make_shared< CallbackAsyncSerial>(port, 115200);
   this->serial->setCallback(
       [this](const char *data, size_t len) { this->callback(data, len); });
 }
@@ -375,6 +383,9 @@ void TMX::setScanDelay(uint8_t delay) {
 
 void TMX::stop() {
   // this->sendMessage(TMX::MESSAGE_TYPE::STOP, {});
+  if(!this->serial) {
+    return;
+  }
   if (this->serial->isOpen()) {
     this->serial->close();
   }
