@@ -1,6 +1,7 @@
 #include <bit>
 #include <sensors/INA226.hpp>
 #include <iostream>
+#include <cassert>
 // struct INA226_MOD_data {
 //         float voltage;
 //         float current;
@@ -18,12 +19,14 @@ std::vector<uint8_t> INA226_module::init_data() {
                   this->type = SENSOR_TYPE::INA226;
 
    return {i2c_port, address}; }
-
+ 
 void INA226_module::data_callback(std::vector<uint8_t> data) {
   static_assert(sizeof(float) == sizeof(uint32_t));
   static_assert(sizeof(float) == 4);
-  uint32_t temp = (((uint32_t)data[3]) << 24) | (((uint32_t)data[1]) << 16) |
-                  (((uint32_t)data[1]) << 8) | ((uint32_t)data[0]);
+  assert(data.size() == 8);
+ 
+  uint32_t temp = (uint32_t)(((uint32_t)data[3]) << 24) | (((uint32_t)data[2]) << 16) |
+         (((uint32_t)data[1]) << 8) | ((uint32_t)data[0]);;
   float voltage_f = std::bit_cast<float>(temp);
   temp = (((uint32_t)data[7]) << 24) | (((uint32_t)data[6]) << 16) |
          (((uint32_t)data[5]) << 8) | ((uint32_t)data[4]);

@@ -163,10 +163,9 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     }
   } break;
   case TMX::MESSAGE_IN_TYPE::ENCODER_REPORT: {
-    auto pin = message[2];
-    auto value =
-        (message[3] << 8) | message[4]; // TODO: check if this is correct
-    for (const auto &callback : this->encoder_callbacks_pin) {
+    uint8_t pin = message[2];
+    auto value = (int8_t)message[3];
+            for (const auto &callback : this->encoder_callbacks_pin) {
       if (callback.first == pin) {
         callback.second(pin, value);
       }
@@ -364,7 +363,12 @@ void TMX::add_analog_callback(uint8_t pin,
 void TMX::attach_encoder(uint8_t pin_A, uint8_t pin_B,
                          std::function<void(uint8_t, int8_t)> callback) {
   this->encoder_callbacks_pin.push_back({pin_A, callback});
-  this->sendMessage(TMX::MESSAGE_TYPE::ENCODER_NEW, {pin_A, pin_B});
+  uint8_t type = 2; // 'default' on quadrature encoder
+  if(pin_B == 0xff || pin_B == 0) { // if pin_B is not set, go back to single
+    pin_B = 0;
+    type = 1;
+  }
+  this->sendMessage(TMX::MESSAGE_TYPE::ENCODER_NEW, {type, pin_A, pin_B});
 }
 
 void TMX::attach_sonar(uint8_t trigger, uint8_t echo,
