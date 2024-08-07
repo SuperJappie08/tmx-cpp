@@ -165,7 +165,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
   case TMX::MESSAGE_IN_TYPE::ENCODER_REPORT: {
     uint8_t pin = message[2];
     auto value = (int8_t)message[3];
-            for (const auto &callback : this->encoder_callbacks_pin) {
+    for (const auto &callback : this->encoder_callbacks_pin) {
       if (callback.first == pin) {
         callback.second(pin, value);
       }
@@ -363,8 +363,8 @@ void TMX::add_analog_callback(uint8_t pin,
 void TMX::attach_encoder(uint8_t pin_A, uint8_t pin_B,
                          std::function<void(uint8_t, int8_t)> callback) {
   this->encoder_callbacks_pin.push_back({pin_A, callback});
-  uint8_t type = 2; // 'default' on quadrature encoder
-  if(pin_B == 0xff || pin_B == 0) { // if pin_B is not set, go back to single
+  uint8_t type = 2;                  // 'default' on quadrature encoder
+  if (pin_B == 0xff || pin_B == 0) { // if pin_B is not set, go back to single
     pin_B = 0;
     type = 1;
   }
@@ -401,7 +401,7 @@ bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
     return false;
   }
   static bool initialized_ports[2] = {false, false}; // 2 ports for now
-  if(initialized_ports[port]) {
+  if (initialized_ports[port]) {
     return false;
   }
   initialized_ports[port] = true;
