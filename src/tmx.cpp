@@ -396,6 +396,11 @@ bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
   if (sda == 0 || scl == 0 || sda == scl) {
     return false;
   }
+  static bool initialized_ports[2] = {false, false}; // 2 ports for now
+  if(initialized_ports[port]) {
+    return false;
+  }
+  initialized_ports[port] = true;
   // TODO: add a check for pins, store some map of current pins
   this->sendMessage(TMX::MESSAGE_TYPE::I2C_BEGIN, {port, sda, scl});
   return true;
