@@ -3,6 +3,7 @@
 #include <functional>
 #include <stdint.h>
 #include <vector>
+#include <memory>
 class PCA9685_module : public Module_type {
 public:
   std::function<void(std::vector<uint8_t>)> send_module;
@@ -13,7 +14,7 @@ public:
     uint16_t high;
     uint16_t low = 0;
   };
-  bool set_multiple_pwm(std::vector<PWM_val> pwm_vals);
+  bool set_multiple_pwm(std::shared_ptr<std::vector<PWM_val>> pwm_vals);
 
   std::vector<uint8_t> init_data();
   void data_callback(std::vector<uint8_t> data);

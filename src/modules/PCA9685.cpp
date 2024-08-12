@@ -16,9 +16,10 @@ bool PCA9685_module::set_pwm(uint8_t channel, uint16_t high, uint16_t low) {
   return true;
 }
 
-bool PCA9685_module::set_multiple_pwm(std::vector<PWM_val> pwm_vals) {
+bool PCA9685_module::set_multiple_pwm(std::shared_ptr<std::vector<PWM_val>> pwm_vals) {
   std::vector<uint8_t> data;
-  for (auto pwm_val : pwm_vals) {
+  for (auto i = 0; i < pwm_vals->size(); i++) {
+    auto pwm_val = pwm_vals->at(i);
     data.push_back(pwm_val.channel);
     data.push_back((uint8_t)(pwm_val.low & 0xFF));
     data.push_back((uint8_t)(pwm_val.low >> 8));
