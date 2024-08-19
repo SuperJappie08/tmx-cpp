@@ -147,4 +147,6 @@ public:
   void setScanDelay(uint8_t delay);
   bool setI2CPins(uint8_t sda, uint8_t scl, uint8_t port);
   std::shared_ptr<CallbackAsyncSerial> serial;
+
+  static bool check_port(const std::string &port);
 };

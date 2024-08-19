@@ -409,3 +409,39 @@ bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
   this->sendMessage(TMX::MESSAGE_TYPE::I2C_BEGIN, {port, sda, scl});
   return true;
 }
+
+#include <thread>
+bool TMX::check_port(const std::string &port) {
+  try {
+    auto serial = std::make_shared<CallbackAsyncSerial>(port, 115200);
+    std::vector<uint8_t> buffer;
+    serial->setCallback([&buffer](const char *data, size_t len) {
+      buffer.insert(buffer.end(), data, data + len);
+    });
+    buffer.clear();
+    serial->write({1, 5}); // send a get fw version message
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(100)); // pico should respond within 100ms
+    serial->close();
+    if (buffer.size() < 4) {
+      return false;
+    }
+    std::vector<uint8_t> expected = {3, 5, 0,
+                                     0}; // version number does not matter
+    for (auto i = 0; i < 4; i++) {
+      if (buffer[i] != expected[i] && expected[i] != 0) {
+        std::cout << "expected " << (int)expected[i] << " got "
+                  << (int)buffer[i] << std::endl;
+        std::cout << "buffer = ";
+        for (auto i : buffer) {
+          std::cout << std::hex << (int)i << " ";
+        }
+        return false;
+      }
+    }
+  } catch (std::exception &e) {
+    std::cout << "Exception" << e.what() << std::endl;
+    return false;
+  }
+  return true;
+}
