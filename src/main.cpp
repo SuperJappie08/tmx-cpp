@@ -9,8 +9,8 @@ using namespace std;
 int main(int argc, char *argv[]) {
   try {
     TMX tmx;
-    CallbackAsyncSerial serial(argv[1], 115200);
-    tmx.serial = &serial;
+    auto serial = std::make_shared<CallbackAsyncSerial>(argv[1], 115200);
+    tmx.serial = serial;
     int count = 0;
     // byte_buffer bytes;
     // append_bytes(bytes, 1);         // appends sizeof(int) bytes
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
       std::cout << std::hex << (int)i << " ";
     }
     std::cout << std::endl;
-    serial.setCallback([&tmx, &count](const char *data, size_t len) {
+    serial->setCallback([&tmx, &count](const char *data, size_t len) {
       count += len;
       //    std::cout << "callback!!!" << count << std::endl;
       //    this_thread::sleep_for(chrono::milliseconds(1000));
@@ -51,20 +51,20 @@ int main(int argc, char *argv[]) {
       tmx.digitalWrite(pin, 0);
       this_thread::sleep_for(chrono::milliseconds(sl));
     }
-    tmx.sensors.add_adxl345(0x53, [](auto data) {
-      std::cout << "adxl345 callback" << std::endl;
-      for (auto i : data) {
-        std::cout << std::hex << (int)i << " ";
-      }
-      std::cout << std::endl;
-    });
+    // tmx.sensors.add_adxl345(0x53, [](auto data) {
+    //   std::cout << "adxl345 callback" << std::endl;
+    //   for (auto i : data) {
+    //     std::cout << std::hex << (int)i << " ";
+    //   }
+    //   std::cout << std::endl;
+    // });
     this_thread::sleep_for(chrono::seconds(20));
 
     // Always returns immediately. If the terminator \r\n has not yet
     // arrived, returns an empty string.
     //  cout<<serial.readStringUntil("\r\n")<<endl;
 
-    serial.close();
+    serial->close();
   } catch (boost::system::system_error &e) {
     cout << "Error: " << e.what() << endl;
     return 1;

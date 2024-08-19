@@ -1,9 +1,9 @@
 #pragma once
 #include "modules/Module_t.hpp"
 #include <functional>
+#include <memory>
 #include <stdint.h>
 #include <vector>
-#include <memory>
 class PCA9685_module : public Module_type {
 public:
   std::function<void(std::vector<uint8_t>)> send_module;
