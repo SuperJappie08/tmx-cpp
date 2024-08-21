@@ -14,8 +14,8 @@ public:
   INA226_cb_t data_cb;
 
 private:
-  uint8_t i2c_port;
-  uint8_t address;
+  uint8_t i2c_port = 0;
+  uint8_t address = 0x40;
   // time switch_trigger_start_time;
 };
 

@@ -8,7 +8,7 @@
 // }
 INA226_module::INA226_module(uint8_t i2c_port, uint8_t address,
                              INA226_cb_t data_cb)
-    : i2c_port(i2c_port), address(address), data_cb(data_cb) {
+    : data_cb(data_cb), i2c_port(i2c_port), address(address) {
 
   this->type = SENSOR_TYPE::INA226;
 }

@@ -135,7 +135,7 @@ uint8_t HiwonderServo_module::get_servo_num(uint8_t servo_id) {
   // the servo_ids vector is the list of servo ids that the user has given
   // but the comm uses the index of the servo in the list
 
-  for (auto i = 0; i < servo_ids.size(); i++) {
+  for (size_t i = 0; i < servo_ids.size(); i++) {
     if (servo_ids[i] == servo_id) {
       return i;
     }
@@ -158,7 +158,7 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
   switch (message_type) {
   case HIWONDER_SERVO_RESPONSES::SERVO_POSITION: {
     std::vector<Servo_pos> servo_positions;
-    for (auto i = 1; i < data.size(); i += 3) {
+    for (size_t i = 1; i < data.size(); i += 3) {
       Servo_pos pos;
       pos.id = servo_ids[data[i]];
       pos.angle = data[i + 2] + (data[i + 1] << 8);

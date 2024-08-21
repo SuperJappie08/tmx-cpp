@@ -6,7 +6,7 @@ Sensors::Sensors(std::shared_ptr<TMX> tmx) {
                     std::bind(&Sensors::callback, this, std::placeholders::_1));
 }
 
-int Sensors::add_sensor(uint8_t sens_num, SENSOR_TYPE type,
+size_t Sensors::add_sensor(uint8_t sens_num, SENSOR_TYPE type,
                         std::vector<uint8_t> data,
                         std::function<void(std::vector<uint8_t>)> callback) {
   // todo: send data to pico

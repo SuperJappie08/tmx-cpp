@@ -15,7 +15,7 @@
 class TMX;
 class Sensors {
 public:
-  int add_sensor(uint8_t sens_num, SENSOR_TYPE type, std::vector<uint8_t> data,
+  size_t add_sensor(uint8_t sens_num, SENSOR_TYPE type, std::vector<uint8_t> data,
                  std::function<void(std::vector<uint8_t>)> callback);
   std::vector<std::pair<SENSOR_TYPE, std::function<void(std::vector<uint8_t>)>>>
       sensors;
