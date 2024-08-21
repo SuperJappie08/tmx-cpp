@@ -165,5 +165,5 @@ static bool is_accepted_port(const serial_port &port);
 static uint8_t get_id(const serial_port &port);
 static bool set_id(const serial_port &port, uint8_t id);
 static std::pair<bool, std::vector<uint8_t>> parse_buffer_for_message(
-    std::vector<uint8_t> &buffer, uint8_t &len, uint8_t &type);
+    std::vector<uint8_t> &buffer, uint8_t len, uint8_t type);
 };

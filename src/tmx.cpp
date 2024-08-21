@@ -422,8 +422,34 @@ bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
 }
 
 std::pair<bool,std::vector<uint8_t>> TMX::parse_buffer_for_message(
-    std::vector<uint8_t> &buffer, uint8_t &len, uint8_t &type) {
-      
+    std::vector<uint8_t> &buffer, uint8_t wanted_len, uint8_t wanted_type) {
+      if (buffer.size() < wanted_len) {
+    return {false, {}};
+  }
+
+  // expected message: {wanted_len, type, ...}
+  std::cout << "buffer size: " << buffer.size() << std::endl;
+  while(buffer.size()>= wanted_len){
+    std::cout << "buffer size: " << buffer.size() << std::endl;
+    auto len = buffer[0];
+    std::cout << "len: " << (int)len << std::endl;
+    if(len != wanted_len-1){ // different length message
+      if(buffer.size() <= len+1){ // not enough data
+        return {false, {}};
+      }
+      buffer.erase(buffer.begin(), buffer.begin() + 1 + len); // remove the message
+      continue;
+    }
+    std::cout << "type: " << (int)buffer[1] << std::endl;
+    std::cout << "id: " << (int)buffer[2] << std::endl;
+    if(buffer[1] != wanted_type){
+      buffer.erase(buffer.begin(), buffer.begin() + 1+ len); // remove the message
+      continue;
+    } else {
+      return {true, {buffer.begin()+1, buffer.begin()+1 + wanted_len}};
+    }
+  }
+  return {false, {}};
     }
 
 #include <thread>
@@ -440,27 +466,11 @@ bool TMX::check_port(const std::string &port) {
     std::this_thread::sleep_for(
         std::chrono::milliseconds(100)); // pico should respond within 100ms
     serial->close();
-    if (buffer.size() < 4) {
+    auto out = TMX::parse_buffer_for_message(buffer, 4, MESSAGE_IN_TYPE::FIRMWARE_REPORT);
+    if(out.first){
+      return true;
+    } else {
       return false;
-    }
-    std::vector<uint8_t> expected = {3, MESSAGE_IN_TYPE::FIRMWARE_REPORT, 0,
-                                     0}; // version number does not matter
-    while(buffer.size()>= 4){
-      std::cout << "cp buffer size: " << buffer.size() << std::endl;
-      auto len = buffer[0];
-      if(len != 3){ // different length message
-        if(buffer.size() <= len+1){
-          return false;
-        }
-        buffer.erase(buffer.begin(), buffer.begin() + 1 + len); // remove the message
-        continue;
-      }
-      if(buffer[1] != MESSAGE_IN_TYPE::FIRMWARE_REPORT){
-        buffer.erase(buffer.begin(), buffer.begin() + 1 +len); // remove the message
-        continue;
-      } else {
-        return true; // found the correct message
-      }
     }
   } catch (std::exception &e) {
     std::cout << "Exception" << e.what() << std::endl;
@@ -537,34 +547,13 @@ uint8_t TMX::get_id(const TMX::serial_port& port) {
   std::this_thread::sleep_for(
       std::chrono::milliseconds(1000)); // pico should respond within 100ms
   serial->close();
-  if (buffer.size() < 3) {
-    return 0;
-  }
-
-  // expected message: {2, MESSAGE_IN_TYPE::GET_ID_REPORT, id}
-  std::cout << "buffer size: " << buffer.size() << std::endl;
-  while(buffer.size()>= 3){
-    std::cout << "buffer size: " << buffer.size() << std::endl;
-    auto len = buffer[0];
-    std::cout << "len: " << (int)len << std::endl;
-    if(len != 2){ // different length message
-      if(buffer.size() <= len+1){
-        return 0;
-      }
-      buffer.erase(buffer.begin(), buffer.begin() + 1 + len); // remove the message
-      continue;
-    }
-    std::cout << "type: " << (int)buffer[1] << std::endl;
-    std::cout << "id: " << (int)buffer[2] << std::endl;
-    if(buffer[1] != MESSAGE_IN_TYPE::GET_ID_REPORT){
-      buffer.erase(buffer.begin(), buffer.begin() + 1+ len); // remove the message
-      continue;
-    } else {
-      return buffer[2];
-    }
-  }
-  std::cout << "No id found" << std::endl;
-  return 0xff;
+  auto out = TMX::parse_buffer_for_message(buffer, 3, MESSAGE_IN_TYPE::GET_ID_REPORT);
+  if(out.first){
+    return out.second[1];
+  } else {
+    std::cout << "No id found" << std::endl;
+    return 0xfe;
+  };
 }
 
 
@@ -590,28 +579,7 @@ bool TMX::set_id(const TMX::serial_port& port, uint8_t id) {
     std::cout << std::hex << (int)i << " ";
   }
   std::cout << std::endl;
+  auto out = TMX::parse_buffer_for_message(buffer, 3, MESSAGE_IN_TYPE::SET_ID_REPORT);
   // expected message: {2, MESSAGE_IN_TYPE::SET_ID_REPORT, id}
-  while(buffer.size()>= 3){
-    std::cout << "buffer size set: " << buffer.size() << std::endl;
-    auto len = buffer[0];
-    std::cout << "len: " << (int)len << std::endl;
-    std::cout << "type: " << (int)buffer[1] << std::endl;
-    if(len != 2){ // different length message
-      if(buffer.size() <= len+1){
-        return false;
-      }
-      buffer.erase(buffer.begin(), buffer.begin() + 1 + len); // remove the message
-          std::cout << "buffer size set del: " << buffer.size() << std::endl;
-
-      continue;
-    }
-    if(buffer[1] != MESSAGE_IN_TYPE::SET_ID_REPORT){
-      buffer.erase(buffer.begin(), buffer.begin() + 1+ len); // remove the message
-      continue;
-    } else {
-      std::cout << "set id: " << (int)buffer[2] << std::endl;
-      return buffer[2] == id;
-    }
-  }
-  return false;
+  return out.first && out.second[1] == id;
 }
