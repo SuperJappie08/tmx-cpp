@@ -211,7 +211,14 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
       callback(message);
     }
   } break;
-
+  case TMX::MESSAGE_IN_TYPE::GET_ID_REPORT: {
+    std::cout << "Get id not implemented" << std::endl;
+    std::cout << "ID = " << std::hex << (uint)message[2] << std::endl;
+  } break;
+  case TMX::MESSAGE_IN_TYPE::SET_ID_REPORT: {
+    std::cout << "Set id not implemented" << std::endl;
+    std::cout << "ID = " << std::hex << (uint)message[2] << std::endl;
+  } break;
   default:
     break;
   }
@@ -340,6 +347,10 @@ void TMX::add_callback(
   case TMX::MESSAGE_IN_TYPE::SERVO_UNAVAILABLE:
     this->servo_unavailable_callbacks.push_back(callback);
     break;
+  case TMX::MESSAGE_IN_TYPE::GET_ID_REPORT:
+  case TMX::MESSAGE_IN_TYPE::SET_ID_REPORT:
+    std::cout << "Get id and set id not implemented" << std::endl;
+    break;
   default:
     break;
   }
@@ -410,33 +421,45 @@ bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
   return true;
 }
 
+std::pair<bool,std::vector<uint8_t>> TMX::parse_buffer_for_message(
+    std::vector<uint8_t> &buffer, uint8_t &len, uint8_t &type) {
+      
+    }
+
 #include <thread>
 bool TMX::check_port(const std::string &port) {
   try {
     auto serial = std::make_shared<CallbackAsyncSerial>(port, 115200);
     std::vector<uint8_t> buffer;
     serial->setCallback([&buffer](const char *data, size_t len) {
+      std::cout << "check port len: " << len << std::endl;
       buffer.insert(buffer.end(), data, data + len);
     });
     buffer.clear();
-    serial->write({1, 5}); // send a get fw version message
+    serial->write({1, MESSAGE_TYPE::FIRMWARE_VERSION}); // send a get fw version message
     std::this_thread::sleep_for(
         std::chrono::milliseconds(100)); // pico should respond within 100ms
     serial->close();
     if (buffer.size() < 4) {
       return false;
     }
-    std::vector<uint8_t> expected = {3, 5, 0,
+    std::vector<uint8_t> expected = {3, MESSAGE_IN_TYPE::FIRMWARE_REPORT, 0,
                                      0}; // version number does not matter
-    for (auto i = 0; i < 4; i++) {
-      if (buffer[i] != expected[i] && expected[i] != 0) {
-        std::cout << "expected " << (int)expected[i] << " got "
-                  << (int)buffer[i] << std::endl;
-        std::cout << "buffer = ";
-        for (auto i : buffer) {
-          std::cout << std::hex << (int)i << " ";
+    while(buffer.size()>= 4){
+      std::cout << "cp buffer size: " << buffer.size() << std::endl;
+      auto len = buffer[0];
+      if(len != 3){ // different length message
+        if(buffer.size() <= len+1){
+          return false;
         }
-        return false;
+        buffer.erase(buffer.begin(), buffer.begin() + 1 + len); // remove the message
+        continue;
+      }
+      if(buffer[1] != MESSAGE_IN_TYPE::FIRMWARE_REPORT){
+        buffer.erase(buffer.begin(), buffer.begin() + 1 +len); // remove the message
+        continue;
+      } else {
+        return true; // found the correct message
       }
     }
   } catch (std::exception &e) {
@@ -444,4 +467,151 @@ bool TMX::check_port(const std::string &port) {
     return false;
   }
   return true;
+}
+
+const std::vector<TMX::serial_port> TMX::accepted_ports = {
+    {"", 0x1a86, 0x7523}, // CH340
+    {"", 0x2E8A, 0x000A}, // RP2040
+    };
+    
+#include <filesystem>
+#include <iostream>
+#include <string>
+#include <tmx_util.hpp>
+#include <boost/format.hpp> // std::format not yet supported
+std::vector<TMX::serial_port> TMX::get_available_ports() {
+  std::vector<serial_port> port_names;
+  namespace fs =  std::filesystem;
+  fs::path p("/dev/serial/by-id");
+  try {
+    if (!exists(p)) {
+      std::cout << p.generic_string() << " does not exist" << std::endl;
+      return port_names;
+    } else {
+      for (auto de : fs::directory_iterator(p)) {
+        if (is_symlink(de.symlink_status())) {
+          serial_port sp;
+          fs::path symlink_points_at = read_symlink(de);
+          fs::path canonical_path = fs::canonical(p / symlink_points_at);
+          std::cout << canonical_path.generic_string() << std::endl;
+          sp.port_name = canonical_path.generic_string();
+
+          auto out =  exec((boost::format("udevadm info --name=%s | grep 'ID_VENDOR_ID'")% canonical_path.generic_string()).str());
+          
+          out = out.substr(out.find('=') + 1);// ID_VENDOR_ID=0403, only get the 0403
+          sp.pid = std::stoi(out, nullptr, 16); // convert to int
+          out = exec((boost::format("udevadm info --name=%s | grep ID_MODEL_ID=")% canonical_path.generic_string()).str());
+          out = out.substr(out.find('=') + 1);
+          sp.vid = std::stoi(out, nullptr, 16);
+          std::cout << sp.port_name << " " << sp.vid << ":" << sp.pid << std::endl;
+          port_names.push_back(sp);
+        }
+      }
+    }
+  } catch (const fs::filesystem_error &ex) {
+    std::cout << ex.what() << '\n';
+    throw port_names;
+  }
+  // std::sort(port_names.begin(), port_names.end());
+  return port_names;
+}
+
+bool TMX::is_accepted_port(const serial_port &port) {
+  for (const auto &accepted_port : TMX::accepted_ports) {
+    if (accepted_port.vid == port.vid && accepted_port.pid == port.pid) {
+      return true;
+    }
+  }
+  return false;
+}
+
+uint8_t TMX::get_id(const TMX::serial_port& port) {
+  auto serial = std::make_shared<CallbackAsyncSerial>(port.port_name, 115200);
+  std::vector<uint8_t> buffer;
+  serial->setCallback([&buffer](const char *data, size_t len) {
+    std::cout << "get id len: " << len << std::endl;
+    buffer.insert(buffer.end(), data, data + len);
+  });
+  buffer.clear();
+  serial->write({1, MESSAGE_TYPE::GET_ID}); // send a get id message
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(1000)); // pico should respond within 100ms
+  serial->close();
+  if (buffer.size() < 3) {
+    return 0;
+  }
+
+  // expected message: {2, MESSAGE_IN_TYPE::GET_ID_REPORT, id}
+  std::cout << "buffer size: " << buffer.size() << std::endl;
+  while(buffer.size()>= 3){
+    std::cout << "buffer size: " << buffer.size() << std::endl;
+    auto len = buffer[0];
+    std::cout << "len: " << (int)len << std::endl;
+    if(len != 2){ // different length message
+      if(buffer.size() <= len+1){
+        return 0;
+      }
+      buffer.erase(buffer.begin(), buffer.begin() + 1 + len); // remove the message
+      continue;
+    }
+    std::cout << "type: " << (int)buffer[1] << std::endl;
+    std::cout << "id: " << (int)buffer[2] << std::endl;
+    if(buffer[1] != MESSAGE_IN_TYPE::GET_ID_REPORT){
+      buffer.erase(buffer.begin(), buffer.begin() + 1+ len); // remove the message
+      continue;
+    } else {
+      return buffer[2];
+    }
+  }
+  std::cout << "No id found" << std::endl;
+  return 0xff;
+}
+
+
+bool TMX::set_id(const TMX::serial_port& port, uint8_t id) {
+  auto serial = std::make_shared<CallbackAsyncSerial>(port.port_name, 115200);
+  std::vector<uint8_t> buffer;
+  serial->setCallback([&buffer](const char *data, size_t len) {
+    std::cout << "set id len: " << len << std::endl;
+    buffer.insert(buffer.end(), data, data + len);
+  });
+  buffer.clear();
+  std::cout << "setting to id: " << (int)id << std::endl;
+  serial->write({2, MESSAGE_TYPE::SET_ID, (char)id}); // send a set id message
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(2000)); // pico should respond within 100ms
+  serial->close();
+  if (buffer.size() < 3) {
+    std::cout << "no data" << std::endl;
+    return false;
+  }
+  std::cout << "set id data" << std::endl;
+  for(auto i : buffer){
+    std::cout << std::hex << (int)i << " ";
+  }
+  std::cout << std::endl;
+  // expected message: {2, MESSAGE_IN_TYPE::SET_ID_REPORT, id}
+  while(buffer.size()>= 3){
+    std::cout << "buffer size set: " << buffer.size() << std::endl;
+    auto len = buffer[0];
+    std::cout << "len: " << (int)len << std::endl;
+    std::cout << "type: " << (int)buffer[1] << std::endl;
+    if(len != 2){ // different length message
+      if(buffer.size() <= len+1){
+        return false;
+      }
+      buffer.erase(buffer.begin(), buffer.begin() + 1 + len); // remove the message
+          std::cout << "buffer size set del: " << buffer.size() << std::endl;
+
+      continue;
+    }
+    if(buffer[1] != MESSAGE_IN_TYPE::SET_ID_REPORT){
+      buffer.erase(buffer.begin(), buffer.begin() + 1+ len); // remove the message
+      continue;
+    } else {
+      std::cout << "set id: " << (int)buffer[2] << std::endl;
+      return buffer[2] == id;
+    }
+  }
+  return false;
 }

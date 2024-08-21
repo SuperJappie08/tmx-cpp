@@ -102,13 +102,15 @@ public:
     SENSOR_NEW = 31,
     PING = 32,
     MODULE_NEW = 33,
-    MODULE_DATA = 34
+    MODULE_DATA = 34,
+    GET_ID = 35,
+    SET_ID = 36,
   };
   enum MESSAGE_IN_TYPE : uint8_t {
     SERIAL_LOOP_BACK_REPORT = 0,
     DIGITAL_REPORT = 2,
     ANALOG_REPORT = 3,
-    FIRMWARE_REPORT = 5,
+    FIRMWARE_REPORT = MESSAGE_TYPE::FIRMWARE_VERSION,
     REPORT_PICO_UNIQUE_ID = 6,
     SERVO_UNAVAILABLE = 7, // for the future
     I2C_WRITE_REPORT = 8,
@@ -121,7 +123,9 @@ public:
     DEBUG_PRINT = 99,
     SENSOR_REPORT = 20,
     PONG_REPORT = 32,
-    MODULE_REPORT = 34
+    MODULE_REPORT = 34,
+    GET_ID_REPORT = MESSAGE_TYPE::GET_ID,
+    SET_ID_REPORT = MESSAGE_TYPE::SET_ID,
   };
   enum PIN_MODES : uint8_t {
     DIGITAL_INPUT = 0,
@@ -149,4 +153,17 @@ public:
   std::shared_ptr<CallbackAsyncSerial> serial;
 
   static bool check_port(const std::string &port);
+struct serial_port {
+  std::string port_name;
+  uint pid;
+  uint vid;
+};
+static const std::vector<serial_port> accepted_ports;
+
+static std::vector<serial_port> get_available_ports();
+static bool is_accepted_port(const serial_port &port);
+static uint8_t get_id(const serial_port &port);
+static bool set_id(const serial_port &port, uint8_t id);
+static std::pair<bool, std::vector<uint8_t>> parse_buffer_for_message(
+    std::vector<uint8_t> &buffer, uint8_t &len, uint8_t &type);
 };
