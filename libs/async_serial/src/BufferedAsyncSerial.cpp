@@ -5,7 +5,7 @@
  * Created on January 6, 2011, 3:31 PM
  */
 
-#include "BufferedAsyncSerial.h"
+#include "async_serial/BufferedAsyncSerial.h"
 
 #include <algorithm>
 #include <string>

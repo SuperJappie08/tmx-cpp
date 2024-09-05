@@ -27,7 +27,7 @@
  *
  */
 
-#include "AsyncSerial.h"
+#include "async_serial/AsyncSerial.h"
 
 #include <algorithm>
 #include <boost/bind/bind.hpp>

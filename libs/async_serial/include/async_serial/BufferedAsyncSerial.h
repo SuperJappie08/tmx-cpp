@@ -5,7 +5,7 @@
  * Created on January 6, 2011, 3:31 PM
  */
 
-#include "AsyncSerial.h"
+#include "async_serial/AsyncSerial.h"
 #include <mutex>
 
 #ifndef BUFFEREDASYNCSERIAL_H

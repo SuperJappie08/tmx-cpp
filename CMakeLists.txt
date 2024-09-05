@@ -9,13 +9,23 @@ project(tmx_cpp)
 # Find Boost libraries
 find_package(Boost REQUIRED COMPONENTS system thread)
 
+add_subdirectory(libs/async_serial)
+
 # Add executable
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/libs/async_serial/ SUB_SOURCES)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/async_serial/
+# aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/libs/async_serial/ SUB_SOURCES)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/async_serial/include/
                     ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
-add_executable(tmx_cpp src/main.cpp src/tmx.cpp src/sensors.cpp ${SUB_SOURCES})
+add_library(tmx_cpp
+  STATIC
+  src/tmx.cpp
+  src/tmx_util.cpp
+  src/buffer_build.cpp
+  src/modules.cpp
+  src/modules/HiwonderServo.cpp
+  src/modules/PCA9685.cpp
+  src/sensors.cpp
+  src/sensors/INA226.cpp)
 
 # Link Boost libraries
-target_link_libraries(tmx_cpp Boost::system Boost::thread)
-install(TARGETS tmx_cpp DESTINATION lib/${PROJECT_NAME})
+target_link_libraries(tmx_cpp Boost::system Boost::thread async_serial)
