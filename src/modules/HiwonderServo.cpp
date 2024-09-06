@@ -1,5 +1,5 @@
 
-#include <modules/HiwonderServo.hpp>
+#include <tmx_cpp/modules/HiwonderServo.hpp>
 
 HiwonderServo_module::HiwonderServo_module(
     uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin,

@@ -1,6 +1,6 @@
 #pragma once
-#include "sensors/Sensor_t.hpp"
-#include "sensors/Sensor_types.hpp"
+#include "tmx_cpp/sensors/Sensor_t.hpp"
+#include "tmx_cpp/sensors/Sensor_types.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>

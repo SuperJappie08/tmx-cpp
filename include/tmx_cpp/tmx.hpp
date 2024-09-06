@@ -1,7 +1,7 @@
 #pragma once
 #include "async_serial/AsyncSerial.h"
-#include "modules.hpp"
-#include "sensors.hpp"
+#include "tmx_cpp/modules.hpp"
+#include "tmx_cpp/sensors.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -148,6 +148,12 @@ public:
                       callback_func_pin_int callback);
   void attach_sonar(uint8_t trigger, uint8_t echo,
                     std::function<void(uint8_t, uint16_t)> callback);
+  
+  // TODO: Maybe add angle remapping
+  void attach_servo(uint8_t pin, uint16_t min_pulse=1000, uint16_t max_pulse=2000);
+  void write_servo(uint8_t pin, uint16_t duty_cycle);
+  void detach_servo(uint8_t pin);
+
   void setScanDelay(uint8_t delay);
   bool setI2CPins(uint8_t sda, uint8_t scl, uint8_t port);
   std::shared_ptr<CallbackAsyncSerial> serial;

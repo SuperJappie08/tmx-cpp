@@ -1,5 +1,5 @@
 #pragma once
-#include "sensors/Sensor_types.hpp"
+#include "tmx_cpp/sensors/Sensor_types.hpp"
 #include <functional>
 #include <stdint.h>
 #include <vector>

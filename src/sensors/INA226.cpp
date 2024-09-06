@@ -1,7 +1,7 @@
 #include <bit>
 #include <cassert>
 #include <iostream>
-#include <sensors/INA226.hpp>
+#include <tmx_cpp/sensors/INA226.hpp>
 // struct INA226_MOD_data {
 //         float voltage;
 //         float current;

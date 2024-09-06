@@ -1,4 +1,4 @@
-#include "sensors.hpp"
+#include <tmx_cpp/sensors.hpp>
 
 Sensors::Sensors(std::shared_ptr<TMX> tmx) {
   this->tmx = tmx;

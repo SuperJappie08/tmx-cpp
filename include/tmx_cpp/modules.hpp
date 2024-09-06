@@ -1,12 +1,12 @@
 #pragma once
-#include "modules/Module_t.hpp"
+#include "tmx_cpp/modules/Module_t.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <modules/HiwonderServo.hpp>
-#include <modules/PCA9685.hpp>
+#include <tmx_cpp/modules/HiwonderServo.hpp>
+#include <tmx_cpp/modules/PCA9685.hpp>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>

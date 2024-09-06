@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./Module_t.hpp"
+#include "tmx_cpp/modules/Module_t.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>

@@ -1,4 +1,4 @@
-#include "tmx.hpp"
+#include "tmx_cpp/tmx.hpp"
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
+
+// #include <bit> // For endianness check
 
 #if __DEBUG__
 #define POOL_SIZE 1
@@ -388,6 +390,42 @@ void TMX::attach_sonar(uint8_t trigger, uint8_t echo,
   this->sendMessage(TMX::MESSAGE_TYPE::SONAR_NEW, {trigger, echo});
 }
 
+
+void TMX::attach_servo(uint8_t pin, uint16_t min_pulse, uint16_t max_pulse) {
+  // Arduino expects 5 bytes [pin, min_h, min_l, max_h, max_l]
+  uint8_t min_pulses_bytes[2];
+  uint8_t max_pulses_bytes[2];
+
+  // FIXME: Is this neccesair, I'm not sure, since the bitshifting and bitwise and might be endianness independend.
+  // if constexpr (std::endian::native == std::endian::big) {
+    // static_assert(std::endian::native == std::endian::big);
+    // #pragma message ("Big Endianness")
+    min_pulses_bytes[0] = (uint8_t)(min_pulse >> 8);
+    min_pulses_bytes[1] = (uint8_t)(min_pulse & 0xff);
+
+    max_pulses_bytes[0] = (uint8_t)(max_pulse >> 8);
+    max_pulses_bytes[1] = (uint8_t)(max_pulse & 0xff);
+  // } else {
+    // static_assert(std::endian::native == std::endian::little);
+    // #pragma message ("Little Endianness detected, unsure if code works correctly.")
+    // min_pulses_bytes[0] = (uint8_t)(min_pulse & 0xff);
+    // min_pulses_bytes[1] = (uint8_t)(min_pulse >> 8);
+
+    // max_pulses_bytes[0] = (uint8_t)(max_pulse & 0xff);
+    // max_pulses_bytes[1] = (uint8_t)(max_pulse >> 8);
+  // }
+  
+  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_ATTACH, {min_pulses_bytes[0], min_pulses_bytes[1], max_pulses_bytes[0], max_pulses_bytes[1]});
+}
+
+void TMX::write_servo(uint8_t pin, uint16_t duty_cycle) {
+  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_WRITE, {duty_cycle >> 8, duty_cycle & 0xff});
+}
+
+void TMX::detach_servo(uint8_t pin) {
+  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_DETACH, {pin});
+}
+
 void TMX::setScanDelay(uint8_t delay) {
   if (delay < 5) {
     delay = 5;
@@ -511,7 +549,8 @@ const std::vector<TMX::serial_port> TMX::accepted_ports = {
 #include <filesystem>
 #include <iostream>
 #include <string>
-#include <tmx_util.hpp>
+#include <tmx_cpp/tmx_util.hpp>
+#include <boost/format.hpp> // std::format not yet supported
 std::vector<TMX::serial_port> TMX::get_available_ports() {
   std::vector<serial_port> port_names;
   namespace fs = std::filesystem;

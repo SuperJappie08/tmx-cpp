@@ -1,4 +1,4 @@
-#include "modules.hpp"
+#include <tmx_cpp/modules.hpp>
 
 Modules::Modules(std::shared_ptr<TMX> tmx) {
   this->tmx = tmx;
