@@ -9,8 +9,6 @@
 #include <string>
 #include <utility>
 
-// #include <bit> // For endianness check
-
 #if __DEBUG__
 #define POOL_SIZE 1
 #else
@@ -396,30 +394,17 @@ void TMX::attach_servo(uint8_t pin, uint16_t min_pulse, uint16_t max_pulse) {
   uint8_t min_pulses_bytes[2];
   uint8_t max_pulses_bytes[2];
 
-  // FIXME: Is this neccesair, I'm not sure, since the bitshifting and bitwise and might be endianness independend.
-  // if constexpr (std::endian::native == std::endian::big) {
-    // static_assert(std::endian::native == std::endian::big);
-    // #pragma message ("Big Endianness")
-    min_pulses_bytes[0] = (uint8_t)(min_pulse >> 8);
-    min_pulses_bytes[1] = (uint8_t)(min_pulse & 0xff);
+  min_pulses_bytes[0] = (uint8_t)(min_pulse >> 8);
+  min_pulses_bytes[1] = (uint8_t)(min_pulse & 0xff);
 
-    max_pulses_bytes[0] = (uint8_t)(max_pulse >> 8);
-    max_pulses_bytes[1] = (uint8_t)(max_pulse & 0xff);
-  // } else {
-    // static_assert(std::endian::native == std::endian::little);
-    // #pragma message ("Little Endianness detected, unsure if code works correctly.")
-    // min_pulses_bytes[0] = (uint8_t)(min_pulse & 0xff);
-    // min_pulses_bytes[1] = (uint8_t)(min_pulse >> 8);
-
-    // max_pulses_bytes[0] = (uint8_t)(max_pulse & 0xff);
-    // max_pulses_bytes[1] = (uint8_t)(max_pulse >> 8);
-  // }
+  max_pulses_bytes[0] = (uint8_t)(max_pulse >> 8);
+  max_pulses_bytes[1] = (uint8_t)(max_pulse & 0xff);
   
-  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_ATTACH, {min_pulses_bytes[0], min_pulses_bytes[1], max_pulses_bytes[0], max_pulses_bytes[1]});
+  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_ATTACH, {pin, min_pulses_bytes[0], min_pulses_bytes[1], max_pulses_bytes[0], max_pulses_bytes[1]});
 }
 
 void TMX::write_servo(uint8_t pin, uint16_t duty_cycle) {
-  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_WRITE, {duty_cycle >> 8, duty_cycle & 0xff});
+  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_WRITE, {pin, (uint8_t)(duty_cycle >> 8), (uint8_t)(duty_cycle & 0xff)});
 }
 
 void TMX::detach_servo(uint8_t pin) {
