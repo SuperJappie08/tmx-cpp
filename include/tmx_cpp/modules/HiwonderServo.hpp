@@ -1,14 +1,18 @@
 #pragma once
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-#include "tmx_cpp/modules/Module_t.hpp"
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <string>
+
+#include "tmx_cpp/modules/Module_t.hpp"
+
+namespace tmx_cpp {
+
 class HiwonderServo_module : public Module_type {
 public:
   std::function<void(std::vector<uint8_t>)> send_module;
@@ -81,3 +85,5 @@ private:
   uint8_t rx_pin;
   uint8_t tx_pin;
 };
+
+}

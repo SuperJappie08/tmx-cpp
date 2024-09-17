@@ -1,6 +1,8 @@
 
 #include <tmx_cpp/modules/HiwonderServo.hpp>
 
+using namespace tmx_cpp;
+
 HiwonderServo_module::HiwonderServo_module(
     uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin,
     std::vector<uint8_t> servo_ids,

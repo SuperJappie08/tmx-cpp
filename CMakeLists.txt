@@ -20,7 +20,6 @@ add_library(tmx_cpp
   STATIC
   src/tmx.cpp
   src/tmx_util.cpp
-  src/buffer_build.cpp
   src/modules.cpp
   src/modules/HiwonderServo.cpp
   src/modules/PCA9685.cpp

@@ -3,6 +3,9 @@
 #include <functional>
 #include <stdint.h>
 #include <vector>
+
+namespace tmx_cpp {
+
 class Sensor_type {
 public:
   virtual std::vector<uint8_t> init_data() = 0;
@@ -10,3 +13,5 @@ public:
   SENSOR_TYPE type;
   virtual ~Sensor_type() = default;
 };
+
+}

@@ -3,6 +3,9 @@
 #include <functional>
 #include <stdint.h>
 #include <vector>
+
+namespace tmx_cpp {
+
 using INA226_cb_t = std::function<void(float voltage, float current)>;
 class INA226_module : public Sensor_type {
 public:
@@ -24,3 +27,5 @@ private:
 // max curr
 // power low time
 // port, id
+
+}

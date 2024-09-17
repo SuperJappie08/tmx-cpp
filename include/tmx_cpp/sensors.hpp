@@ -12,6 +12,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+namespace tmx_cpp {
+
 class TMX;
 class Sensors {
 public:
@@ -31,5 +34,7 @@ public:
   // void add_sensor(std::shared_ptr<Sensor_type> module);
 private:
 };
+
+}
 
 #include "tmx.hpp" // fix for circular dependency

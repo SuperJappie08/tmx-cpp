@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <vector>
 
+namespace tmx_cpp {
+
 class Module_type {
 public:
   virtual std::vector<uint8_t> init_data() = 0;
@@ -13,3 +15,5 @@ public:
   attach_send_module(std::function<void(std::vector<uint8_t>)> send_module) = 0;
   virtual ~Module_type() = default;
 };
+
+}

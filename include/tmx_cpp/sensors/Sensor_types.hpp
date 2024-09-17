@@ -2,6 +2,8 @@
 #pragma once
 #include <stdint.h>
 
+namespace tmx_cpp {
+
 enum SENSOR_TYPE : uint8_t {
   ADXL345 = 0x01, // none implemented
   VEML6040 = 0x02,
@@ -16,3 +18,5 @@ enum SENSOR_TYPE : uint8_t {
 // ADXL345 = 5  # // 3 axis accel
 // INA226 = 6
 // HMC5883 = 7
+
+}

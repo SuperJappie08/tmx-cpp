@@ -1,5 +1,7 @@
 #include <tmx_cpp/modules.hpp>
 
+using namespace tmx_cpp;
+
 Modules::Modules(std::shared_ptr<TMX> tmx) {
   this->tmx = tmx;
   tmx->add_callback(TMX::MESSAGE_IN_TYPE::MODULE_REPORT,

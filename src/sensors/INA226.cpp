@@ -2,6 +2,9 @@
 #include <cassert>
 #include <iostream>
 #include <tmx_cpp/sensors/INA226.hpp>
+
+using namespace tmx_cpp;
+
 // struct INA226_MOD_data {
 //         float voltage;
 //         float current;

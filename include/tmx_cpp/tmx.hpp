@@ -1,17 +1,23 @@
 #pragma once
-#include "async_serial/AsyncSerial.h"
-#include "tmx_cpp/modules.hpp"
-#include "tmx_cpp/sensors.hpp"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "async_serial/AsyncSerial.h"
+
+#include "tmx_cpp/modules.hpp"
+#include "tmx_cpp/sensors.hpp"
+
+namespace tmx_cpp {
+
 using callback_func = std::function<void(std::vector<uint8_t>)>;
 using callback_vec = std::vector<callback_func>;
 using callback_func_pin = std::function<void(uint8_t, uint8_t)>;
@@ -46,20 +52,17 @@ public:
   // callbacks with a specific pin:
   std::vector<std::pair<uint8_t, callback_func_pin>> digital_callbacks_pin;
   std::vector<std::pair<uint8_t, callback_func_pin16>> analog_callbacks_pin;
-  std::vector<std::pair<uint8_t, callback_func_pin_int>>
-      encoder_callbacks_pin; // todo check types
+  std::vector<std::pair<uint8_t, callback_func_pin_int>> encoder_callbacks_pin;  // todo check types
   std::vector<std::pair<uint8_t, callback_func_pin16>> sonar_callbacks_pin;
 
-  void add_callback(MESSAGE_IN_TYPE type,
-                    std::function<void(const std::vector<uint8_t> &)> callback);
-  void add_digital_callback(uint8_t pin,
-                            std::function<void(uint8_t, uint8_t)> callback);
-  void add_analog_callback(uint8_t pin,
-                           std::function<void(uint8_t, uint16_t)> callback);
+  void add_callback(
+    MESSAGE_IN_TYPE type, std::function<void(const std::vector<uint8_t> &)> callback);
+  void add_digital_callback(uint8_t pin, std::function<void(uint8_t, uint8_t)> callback);
+  void add_analog_callback(uint8_t pin, std::function<void(uint8_t, uint16_t)> callback);
 
-  void parse(std::vector<uint8_t> &buffer);
-  void parseOne(const std::vector<uint8_t> &buffer);
-  void parseOne_task(const std::vector<uint8_t> &buffer);
+  void parse(std::vector<uint8_t> & buffer);
+  void parseOne(const std::vector<uint8_t> & buffer);
+  void parseOne_task(const std::vector<uint8_t> & buffer);
   boost::asio::thread_pool parsePool;
   void stop();
   // Sensors sensors;
@@ -112,7 +115,7 @@ public:
     ANALOG_REPORT = 3,
     FIRMWARE_REPORT = MESSAGE_TYPE::FIRMWARE_VERSION,
     REPORT_PICO_UNIQUE_ID = 6,
-    SERVO_UNAVAILABLE = 7, // for the future
+    SERVO_UNAVAILABLE = 7,  // for the future
     I2C_WRITE_REPORT = 8,
     I2C_READ_FAILED = 9,
     I2C_READ_REPORT = 10,
@@ -144,13 +147,12 @@ public:
                   uint16_t analog_differential = 0);
   void digitalWrite(uint8_t pin, bool value);
   void pwmWrite(uint8_t pin, uint16_t value);
-  void attach_encoder(uint8_t pin_A, uint8_t pin_B,
-                      callback_func_pin_int callback);
-  void attach_sonar(uint8_t trigger, uint8_t echo,
-                    std::function<void(uint8_t, uint16_t)> callback);
   
+  void attach_encoder(uint8_t pin_A, uint8_t pin_B, callback_func_pin_int callback);
+  void attach_sonar(uint8_t trigger, uint8_t echo, std::function<void(uint8_t, uint16_t)> callback);
+
   // TODO: Maybe add angle remapping
-  void attach_servo(uint8_t pin, uint16_t min_pulse=1000, uint16_t max_pulse=2000);
+  void attach_servo(uint8_t pin, uint16_t min_pulse = 1000, uint16_t max_pulse = 2000);
   void write_servo(uint8_t pin, uint16_t duty_cycle);
   void detach_servo(uint8_t pin);
 
@@ -158,18 +160,20 @@ public:
   bool setI2CPins(uint8_t sda, uint8_t scl, uint8_t port);
   std::shared_ptr<CallbackAsyncSerial> serial;
 
-  static bool check_port(const std::string &port);
-struct serial_port {
-  std::string port_name;
-  uint pid;
-  uint vid;
-};
-static const std::vector<serial_port> accepted_ports;
+  static bool check_port(const std::string & port);
+  struct serial_port {
+    std::string port_name;
+    uint pid;
+    uint vid;
+  };
+  static const std::vector<serial_port> accepted_ports;
 
-static std::vector<serial_port> get_available_ports();
-static bool is_accepted_port(const serial_port &port);
-static uint8_t get_id(const serial_port &port);
-static bool set_id(const serial_port &port, uint8_t id);
-static std::pair<bool, std::vector<uint8_t>> parse_buffer_for_message(
-    std::vector<uint8_t> &buffer, uint8_t len, uint8_t type);
+  static std::vector<serial_port> get_available_ports();
+  static bool is_accepted_port(const serial_port & port);
+  static uint8_t get_id(const serial_port & port);
+  static bool set_id(const serial_port & port, uint8_t id);
+  static std::pair<bool, std::vector<uint8_t>> parse_buffer_for_message(
+    std::vector<uint8_t> & buffer, uint8_t len, uint8_t type);
 };
+
+}  // namespace tmxcpp

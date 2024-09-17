@@ -1,5 +1,8 @@
 #include "tmx_cpp/modules/PCA9685.hpp"
 #include <iostream>
+
+using namespace tmx_cpp;
+
 PCA9685_module::PCA9685_module(uint8_t i2c_port, uint8_t address,
                                int frequency) {
   this->i2c_port = i2c_port;

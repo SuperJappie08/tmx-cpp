@@ -15,6 +15,8 @@
 #define POOL_SIZE boost::thread::hardware_concurrency()
 #endif
 
+using namespace tmx_cpp;
+
 TMX::TMX(std::string port) : parsePool(POOL_SIZE) {
   this->serial = std::make_shared<CallbackAsyncSerial>(port, 115200);
   this->serial->setCallback(

@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <vector>
 
+namespace tmx_cpp {
+
 typedef std::vector<uint8_t> byte_buffer;
 
 template <std::size_t N>
@@ -38,4 +40,6 @@ template <typename... Args> byte_buffer append_buffer(Args... args) {
 
   append_buffer(buf, args...);
   return buf;
+}
+
 }

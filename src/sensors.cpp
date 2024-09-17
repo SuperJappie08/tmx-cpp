@@ -1,5 +1,7 @@
 #include <tmx_cpp/sensors.hpp>
 
+using namespace tmx_cpp;
+
 Sensors::Sensors(std::shared_ptr<TMX> tmx) {
   this->tmx = tmx;
   tmx->add_callback(TMX::MESSAGE_IN_TYPE::SENSOR_REPORT,

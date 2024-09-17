@@ -4,6 +4,9 @@
 #include <memory>
 #include <stdint.h>
 #include <vector>
+
+namespace tmx_cpp {
+
 class PCA9685_module : public Module_type {
 public:
   std::function<void(std::vector<uint8_t>)> send_module;
@@ -26,3 +29,5 @@ private:
   uint8_t address;
   int frequency;
 };
+
+}
