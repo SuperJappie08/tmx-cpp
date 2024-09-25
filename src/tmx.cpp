@@ -74,6 +74,14 @@ void TMX::parse(std::vector<uint8_t> &buffer) {
   this->parseOne(subBuffer);
 }
 void TMX::parseOne(const std::vector<uint8_t> &message) {
+#ifdef TMX_RX_DEBUG
+  std::cout << "R charMessage = ";
+  for (auto i : message) {
+    std::cout << std::hex << (uint)(i & 0xFF) << " ";
+  }
+  std::cout << std::endl;
+#endif
+
   boost::asio::post(this->parsePool,
                     std::bind(&TMX::parseOne_task, this, message));
 }
@@ -249,11 +257,15 @@ void TMX::sendMessage(TMX::MESSAGE_TYPE type,
   std::vector<char> charMessage(message.begin(), message.end());
   charMessage.insert(charMessage.begin(),
                      {(char)(charMessage.size() + 1), (char)type});
-  std::cout << "charMessage = ";
+
+#ifdef TMX_TX_DEBUG
+  std::cout << "T charMessage = ";
   for (auto i : charMessage) {
     std::cout << std::hex << (uint)(i & 0xFF) << " ";
   }
   std::cout << std::endl;
+#endif
+
   serial->write(charMessage);
 }
 void TMX::setPinMode(uint8_t pin, TMX::PIN_MODES mode, bool reporting,
