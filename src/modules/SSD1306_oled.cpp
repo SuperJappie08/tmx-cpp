@@ -12,11 +12,7 @@ SSD1306_module::SSD1306_module(uint8_t i2c_port, uint8_t address, uint8_t width,
 
 std::vector<uint8_t> SSD1306_module::init_data()
 {
-  // TODO: Address is currently fixed in PICO Firmware, however it might be practical to make it configurable.
-  return {
-    this->i2c_port,
-    //  this->address
-  };
+  return {this->i2c_port, this->address};
 }
 
 void SSD1306_module::data_callback(std::vector<uint8_t> data)
