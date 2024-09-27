@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-#if __DEBUG__
+#ifdef TMX_HW_DEBUG
 #define POOL_SIZE 1
 #else
 #define POOL_SIZE boost::thread::hardware_concurrency()
@@ -17,10 +17,17 @@
 
 using namespace tmx_cpp;
 
-TMX::TMX(std::string port) : parsePool(POOL_SIZE) {
+TMX::TMX(std::function<void()> stop_func, std::string port) : parsePool(POOL_SIZE), stop_func(stop_func) {
   this->serial = std::make_shared<CallbackAsyncSerial>(port, 115200);
   this->serial->setCallback(
       [this](const char *data, size_t len) { this->callback(data, len); });
+
+  this->ping_thread = std::thread(&TMX::ping_task, this);
+  this->add_callback(
+    MESSAGE_IN_TYPE::PONG_REPORT,
+    std::bind(&TMX::ping_callback, this, std::placeholders::_1));
+  // this->add_callback(
+  //   MESSAGE_IN_TYPE::ANALOG_REPORT, [](std::vector<uint8_t> t) { t[1] = 3; });
 }
 
 TMX::~TMX() {}
@@ -434,6 +441,10 @@ void TMX::setScanDelay(uint8_t delay) {
 
 void TMX::stop() {
   // this->sendMessage(TMX::MESSAGE_TYPE::STOP, {});
+  this->is_stopped = true;
+  this->ping_thread.join();
+  this->stop_func = []() {};
+
   if (!this->serial) {
     return;
   }
@@ -652,4 +663,32 @@ bool TMX::set_id(const TMX::serial_port &port, uint8_t id) {
       TMX::parse_buffer_for_message(buffer, 3, MESSAGE_IN_TYPE::SET_ID_REPORT);
   // expected message: {2, MESSAGE_IN_TYPE::SET_ID_REPORT, id}
   return out.first && out.second[1] == id;
+}
+
+void TMX::ping_task()
+{
+  uint8_t num = 0;
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  while (!this->is_stopped) {
+    num++;
+    this->sendPing(num);
+    std::this_thread::sleep_for(std::chrono::milliseconds(400));
+    if ((num - this->last_ping) > 2) {
+      std::cout << "\033[1;31mTelemetrix stopped due to missed pings | Missed: " << ((int)((num - this->last_ping))) <<"\033[0m"<< std::endl;
+      this->stop_func();
+    }
+  }
+}
+
+void TMX::ping_callback(const std::vector<uint8_t> message)
+{
+  if (this->first_magic) {
+    this->magic = message[3];
+    this->first_magic = false;
+  }
+  if (this->magic != message[3]) {
+    std::cout << "Magic changed" << (int)this->magic << "-> " << (int)message[3] << std::endl;
+    this->stop_func();
+  }
+  this->last_ping = message[2];
 }

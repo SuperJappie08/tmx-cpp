@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <thread>
 
 #include "async_serial/AsyncSerial.h"
 
@@ -68,7 +69,7 @@ public:
   // Sensors sensors;
 
 public:
-  TMX(std::string port = "/dev/ttyACM0");
+  TMX(std::function<void()> stop_func, std::string port = "/dev/ttyACM0");
   ~TMX();
   enum MESSAGE_TYPE : uint8_t {
     SERIAL_LOOP_BACK = 0,
@@ -174,6 +175,17 @@ public:
   static bool set_id(const serial_port & port, uint8_t id);
   static std::pair<bool, std::vector<uint8_t>> parse_buffer_for_message(
     std::vector<uint8_t> & buffer, uint8_t len, uint8_t type);
+
+private: /* Ping related elements */
+  std::thread ping_thread; // TODO: jthread from c++20
+  uint8_t last_ping = 0;
+  uint8_t magic = 0;
+  bool first_magic = true;
+  bool is_stopped = false;
+
+  void ping_task();
+  void ping_callback(const std::vector<uint8_t> msg);
+  std::function<void()> stop_func;
 };
 
 }  // namespace tmxcpp
