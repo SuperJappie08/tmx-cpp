@@ -30,6 +30,11 @@ public:
   bool send_text(std::string text);
   bool send_image(uint8_t width, uint8_t height, uint8_t img_buffer[]);
 
+  /// The character limit of the OLED display.
+  /// 132 is the maximum amount of characters that fits on the 128x64 OLED with
+  ///  the courB08 6x11 Font (with the last column of text falling off.)
+  const uint8_t character_limit = 132;
+
 private:
   uint8_t i2c_port;
   uint8_t address;

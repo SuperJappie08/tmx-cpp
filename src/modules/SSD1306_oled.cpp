@@ -10,10 +10,7 @@ SSD1306_module::SSD1306_module(uint8_t i2c_port, uint8_t address, uint8_t width,
   type = MODULE_TYPE::TMX_SSD1306;
 }
 
-std::vector<uint8_t> SSD1306_module::init_data()
-{
-  return {this->i2c_port, this->address};
-}
+std::vector<uint8_t> SSD1306_module::init_data() { return {this->i2c_port, this->address}; }
 
 void SSD1306_module::data_callback(std::vector<uint8_t> data)
 {
@@ -59,14 +56,15 @@ bool SSD1306_module::send_text(std::string text)
 {
   auto future_response = text_promise.get_future();
 
-  // Truncate to 150 chars.
-  auto truncated_text = text.substr(0, std::min((size_t)150, text.length()));
+  // Truncate to char the character limit.
+  auto truncated_text = text.substr(0, std::min((size_t)character_limit, text.length()));
 
-  auto max_len = 30 - 4;
+  auto max_msg_len = 30 - 4;
 
-  for (int idx = 0; idx < truncated_text.length(); idx += max_len) {
-    auto len =
-      (idx + max_len < truncated_text.length()) ? max_len : (truncated_text.length() % max_len);
+  for (int idx = 0; idx < truncated_text.length(); idx += max_msg_len) {
+    auto len = (idx + max_msg_len <= truncated_text.length())
+                 ? max_msg_len
+                 : (truncated_text.length() % max_msg_len);
     auto text_segment = truncated_text.substr(idx, len);
 
     std::vector<uint8_t> data = {TEXT, (uint8_t)len};
@@ -79,7 +77,7 @@ bool SSD1306_module::send_text(std::string text)
   text_promise = std::promise<std::vector<uint8_t>>();
 
   auto supposed_text_length = response[0];
-  if (supposed_text_length > 150) {
+  if (supposed_text_length > character_limit) {
     // TODO: Improve Warning
     std::cerr << "Text is too long" << std::endl;
     return false;
@@ -121,13 +119,13 @@ bool SSD1306_module::send_image(uint8_t width, uint8_t height, uint8_t img_buffe
     }
   }
 
-  auto max_len = 16;
+  auto max_msg_len = 16;
 
-  for (uint8_t idx = 0; idx < compressed_buffer.size() / max_len; idx++) {
+  for (uint8_t idx = 0; idx < compressed_buffer.size() / max_msg_len; idx++) {
     std::vector<uint8_t> data = {BINARY, idx};
     data.insert(
-      data.end(), compressed_buffer.cbegin() + idx * max_len,
-      compressed_buffer.cbegin() + (idx + 1) * max_len);
+      data.end(), compressed_buffer.cbegin() + idx * max_msg_len,
+      compressed_buffer.cbegin() + (idx + 1) * max_msg_len);
     send_module(data);
   }
   send_module({BINARY_DONE});
