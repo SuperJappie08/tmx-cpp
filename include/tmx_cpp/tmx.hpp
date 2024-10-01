@@ -150,6 +150,8 @@ public:
   void pwmWrite(uint8_t pin, uint16_t value);
   
   void attach_encoder(uint8_t pin_A, uint8_t pin_B, callback_func_pin_int callback);
+
+  /// The sonar callback and return value is in centimeters, as specified by the original telemetrix protocol.
   void attach_sonar(uint8_t trigger, uint8_t echo, std::function<void(uint8_t, uint16_t)> callback);
 
   // TODO: Maybe add angle remapping

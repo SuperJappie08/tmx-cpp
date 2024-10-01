@@ -130,7 +130,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     for (const auto &callback : this->digital_callbacks) {
       callback(message);
     }
-  }
+  } break;
   case TMX::MESSAGE_IN_TYPE::ANALOG_REPORT: {
     auto pin = message[2];
     auto value = (message[3] << 8) | message[4];
@@ -168,8 +168,9 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
   } break;
   case TMX::MESSAGE_IN_TYPE::SONAR_DISTANCE: {
     auto pin = message[2];
-    auto value =
-        (message[3] << 8) | message[4]; // TODO: check if this is correct
+
+    // The distance value in centimeters, a left over from the original Telemetrix protocol.
+    auto value = (message[3] << 8) + message[4];
     for (const auto &callback : this->sonar_callbacks_pin) {
       if (callback.first == pin) {
         callback.second(pin, value);
@@ -190,7 +191,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     for (const auto &callback : this->encoder_callbacks) {
       callback(message);
     }
-  }
+  } break;
   case TMX::MESSAGE_IN_TYPE::DEBUG_PRINT: {
     for (const auto &callback : this->debug_print_callbacks) {
       callback(message);
