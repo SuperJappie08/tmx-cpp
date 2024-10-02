@@ -21,13 +21,13 @@ std::vector<uint8_t> MPU9250_module::init_data() {
 void MPU9250_module::data_callback(std::vector<uint8_t> data) {
   static_assert(sizeof(float) == sizeof(uint32_t));
   static_assert(sizeof(float) == 4);
-  // 3 measurements x 3 axes
-  assert(data.size() == sizeof(float) * 3 * 3);
+  // 3 measurements x 3 axes + Quaterion (4)
+  assert(data.size() == sizeof(float) * (3 * 3 + 4));
 
   std::vector<float> acceleration;
   std::vector<float> gyro;
   std::vector<float> magnetic_field;
-
+  std::vector<float> quaternion;
 
   for (int acc_idx = 0; acc_idx < 3; acc_idx++) {
     acceleration.push_back(decode_float(std::vector(
@@ -44,9 +44,14 @@ void MPU9250_module::data_callback(std::vector<uint8_t> data) {
       data.cbegin() + mag_idx * sizeof(float), data.cbegin() + (mag_idx + 1) * sizeof(float))));
   }
 
+  for (int q_idx = 9; q_idx < 13; q_idx++) {
+    quaternion.push_back(decode_float(std::vector(data.cbegin()+q_idx*sizeof(float),data.cbegin() + (q_idx+1)*sizeof(float))));
+  }
+
   assert(acceleration.size() == 3);
   assert(gyro.size() == 3);
   assert(magnetic_field.size() == 3);
+  assert(quaternion.size() == 4);
 
-  data_cb(acceleration, gyro, magnetic_field);
+  data_cb(acceleration, gyro, magnetic_field, quaternion);
 }
