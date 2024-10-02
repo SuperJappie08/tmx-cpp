@@ -18,7 +18,6 @@ public:
 
 private:
   uint8_t i2c_port = 0;
-  // TODO: Hardcoded in Telemetrix Firmware
   uint8_t address = 0x68;
 };
 

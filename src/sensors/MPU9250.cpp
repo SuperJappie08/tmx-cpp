@@ -11,11 +11,9 @@ MPU9250_module::MPU9250_module(uint8_t i2c_port, uint8_t address, MPU9250_cb_t d
 }
 
 std::vector<uint8_t> MPU9250_module::init_data() {
-  std::cout << "MPU port: " << (int)i2c_port << " addr: " << (int)address << std::endl;
   this->type = SENSOR_TYPE::MPU9250;
 
-  // FIXME: Address is hardcoded in Telemetrix Firmware
-  return {i2c_port /*, address*/};
+  return {i2c_port , address};
 }
 
 void MPU9250_module::data_callback(std::vector<uint8_t> data) {
