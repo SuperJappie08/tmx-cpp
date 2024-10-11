@@ -1,8 +1,10 @@
+#include <chrono>
 #include <iostream>
 
 #include "tmx_cpp/modules/SSD1306_oled.hpp"
 
 using namespace tmx_cpp;
+using namespace std::chrono_literals;
 
 SSD1306_module::SSD1306_module(uint8_t i2c_port, uint8_t address, uint8_t width, uint8_t height)
 : i2c_port(i2c_port), address(address), width_(width), height_(height)
@@ -40,7 +42,6 @@ void SSD1306_module::data_callback(std::vector<uint8_t> data)
       binary_promise.set_value(std::vector<uint8_t>(data.cbegin() + 1, data.cend()));
       return;
     default:
-      //FIXME: DO SOMETHING
       // Other cases shouldn't happen. Unless display is disabled
       std::cerr << "An OLED Error message was Recieved: ";
       for (auto i : data) std::cerr << std::hex << (uint)(i & 0xFF) << " ";
@@ -73,6 +74,11 @@ bool SSD1306_module::send_text(std::string text)
   }
   send_module({TEXT_DONE});
 
+  if (future_response.wait_for(200ms) != std::future_status::ready) {
+    std::cerr << "Text timeout error" << std::endl;
+    text_promise = std::promise<std::vector<uint8_t>>();
+    return false;
+  }
   auto response = future_response.get();
   text_promise = std::promise<std::vector<uint8_t>>();
 
@@ -130,6 +136,11 @@ bool SSD1306_module::send_image(uint8_t width, uint8_t height, uint8_t img_buffe
   }
   send_module({BINARY_DONE});
 
+  if (future_response.wait_for(500ms) != std::future_status::ready) {
+    std::cerr << "Image timeout error" << std::endl;
+    binary_promise = std::promise<std::vector<uint8_t>>();
+    return false;
+  }
   auto response = future_response.get();
   binary_promise = std::promise<std::vector<uint8_t>>();
 

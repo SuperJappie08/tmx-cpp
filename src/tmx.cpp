@@ -30,7 +30,9 @@ TMX::TMX(std::function<void()> stop_func, std::string port) : parsePool(POOL_SIZ
   //   MESSAGE_IN_TYPE::ANALOG_REPORT, [](std::vector<uint8_t> t) { t[1] = 3; });
 }
 
-TMX::~TMX() {}
+TMX::~TMX() {
+  this->stop();
+}
 
 void TMX::callback(const char *data, size_t len) {
   // std::cout << "callback" << std::endl;
@@ -443,17 +445,21 @@ void TMX::setScanDelay(uint8_t delay) {
 void TMX::stop() {
   // this->sendMessage(TMX::MESSAGE_TYPE::STOP, {});
   this->is_stopped = true;
-  this->ping_thread.join();
+  if (this->ping_thread.joinable() && std::this_thread::get_id() != this->ping_thread.get_id())
+    this->ping_thread.join();
   this->stop_func = []() {};
+
+  this->parsePool.stop();
+  this->parsePool.join();
 
   if (!this->serial) {
     return;
   }
+
   if (this->serial->isOpen()) {
+    this->sendMessage(TMX::MESSAGE_TYPE::RESET_BOARD, {});
     this->serial->close();
   }
-  this->parsePool.stop();
-  this->parsePool.join();
 }
 
 bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
