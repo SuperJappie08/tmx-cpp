@@ -19,6 +19,8 @@ public:
   };
   bool set_multiple_pwm(std::shared_ptr<std::vector<PWM_val>> pwm_vals);
 
+  bool set_mircoseconds(uint8_t channel, uint16_t microseconds);
+
   std::vector<uint8_t> init_data();
   void data_callback(std::vector<uint8_t> data);
   void

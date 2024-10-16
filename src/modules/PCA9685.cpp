@@ -34,13 +34,31 @@ bool PCA9685_module::set_multiple_pwm(
   return true;
 }
 
-std::vector<uint8_t> PCA9685_module::init_data() {
+// Based on: https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library/blob/73cf3ecc79c7c33a72f8ce1a3d91ca556cd34ab3/Adafruit_PWMServoDriver.cpp#L302-L343
+bool PCA9685_module::set_mircoseconds(uint8_t channel, uint16_t microseconds) {
+  double pulse = microseconds;
+  double pulse_length = 1000000;  // 1,000,000 us per second
 
-  std::cout << "pca init data" << std::dec << (int)this->i2c_port << "A"
-            << (int)this->address << "F" << (int)(this->frequency & 0xFF) << "F"
-            << (int)(this->frequency >> 8) << std::endl;
-  return {this->i2c_port, this->address, (uint8_t)(this->frequency & 0xFF),
-          (uint8_t)(this->frequency >> 8)};
+  const auto clock = 25'000'000;
+  uint8_t prescale = (int)((clock) / (4096 * frequency)) - 1;
+
+  // Calculate the pulse for PWM based on Equation 1 from the datasheet section 7.3.5
+  prescale += 1;
+  pulse_length *= prescale;
+  pulse_length /= clock;
+
+  pulse /= pulse_length;
+
+  return set_pwm(channel, pulse, 0);
+}
+
+std::vector<uint8_t> PCA9685_module::init_data() {
+  // std::cout << "pca init data" << std::dec << (int)this->i2c_port << "A"
+  //           << (int)this->address << "F" << (int)(this->frequency & 0xFF) << "F"
+  //           << (int)(this->frequency >> 8) << std::endl;
+  return {
+    this->i2c_port, this->address, (uint8_t)(this->frequency >> 8),
+    (uint8_t)(this->frequency & 0xFF)};
 }
 
 void PCA9685_module::data_callback(std::vector<uint8_t> data) {
