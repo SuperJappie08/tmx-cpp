@@ -1,24 +1,21 @@
+#include <chrono>
 
 #include <tmx_cpp/modules/HiwonderServo.hpp>
 
 using namespace tmx_cpp;
+using namespace std::chrono_literals;
 
 HiwonderServo_module::HiwonderServo_module(
     uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin,
     std::vector<uint8_t> servo_ids,
-    std::function<void(std::vector<Servo_pos>)> position_cb,
-    std::function<void(int, bool)> verify_cb,
-    std::function<void(int, uint16_t, uint16_t)> range_cb,
-    std::function<void(int, uint16_t)> offset_cb) {
+    std::function<void(std::vector<Servo_pos>)> position_cb) {
 
   this->servo_ids = servo_ids;
   this->uart_port = uart_port;
   this->rx_pin = rx_pin;
   this->tx_pin = tx_pin;
+  // TODO: Use optional futures to determine if callback of normal
   this->position_cb = position_cb;
-  this->verify_cb = verify_cb;
-  this->range_cb = range_cb;
-  this->offset_cb = offset_cb;
   type = MODULE_TYPE::HIWONDER_SERVO;
 }
 
@@ -42,6 +39,7 @@ bool HiwonderServo_module::set_multiple_servos(
                                (uint8_t)servo_vals.size()};
   for (auto servo_val : servo_vals) {
     data.push_back(get_servo_num(servo_val.first));
+    // FIXME: Do these need to be flipped????
     data.push_back((uint8_t)(servo_val.second & 0xFF));
     data.push_back((uint8_t)(servo_val.second >> 8));
 
@@ -75,11 +73,28 @@ bool HiwonderServo_module::set_id(uint8_t new_id, uint8_t old_id) {
   return true;
 }
 
-bool HiwonderServo_module::verify_id(uint8_t id) {
+bool HiwonderServo_module::verify_id(uint8_t servo_id) {
+  assert(!verify_id_promise.has_value());
+  verify_id_promise = std::promise<std::tuple<uint8_t, bool>>();
+
+  auto future = verify_id_promise->get_future();
+  // Do not send a servo index, but an actuall ID.
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::VERIFY_ID,
-                               get_servo_num(id)};
+                               servo_id};
   this->send_module(data);
-  return true;
+
+  auto ok = false;
+
+  // TODO: Wait probably toolong
+  if (future.wait_for(1000ms) == std::future_status::ready) {
+    auto [id, ok_value] = future.get();
+    assert(id == servo_id);
+    ok = ok_value;
+  }
+
+  verify_id_promise.reset();
+
+  return ok;
 }
 
 bool HiwonderServo_module::set_range(uint8_t servo_id, uint16_t min,
@@ -119,18 +134,51 @@ bool HiwonderServo_module::set_offset(uint8_t servo_id, uint16_t offset) {
   return true;
 }
 
-bool HiwonderServo_module::get_range(uint8_t servo_id) {
-  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::GET_RANGE,
-                               get_servo_num(servo_id)};
+std::optional<std::tuple<uint16_t, uint16_t>> HiwonderServo_module::get_range(uint8_t servo_id) {
+  assert(!range_promise.has_value());
+  range_promise = std::promise<std::tuple<uint8_t, std::tuple<uint16_t, uint16_t>>>();
+
+  auto servo_num = get_servo_num(servo_id);
+  auto future = range_promise->get_future();
+  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::GET_RANGE, servo_num};
   this->send_module(data);
-  return true;
+
+  std::optional<std::tuple<uint16_t, uint16_t>> range;
+
+  // TODO: Wait probably toolong
+  if (future.wait_for(100ms) == std::future_status::ready) {
+    auto [id, range_value] = future.get();
+    assert(id == servo_num);
+    range = range_value;
+  }
+
+  range_promise.reset();
+
+  return range;
 }
 
-bool HiwonderServo_module::get_offset(uint8_t servo_id) {
-  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::GET_OFFSET,
-                               get_servo_num(servo_id)};
+std::optional<uint16_t> HiwonderServo_module::get_offset(uint8_t servo_id) {
+  assert(!offset_promise.has_value());
+  offset_promise = std::promise<std::tuple<uint8_t, uint16_t>>();
+
+  auto servo_num = get_servo_num(servo_id);
+  auto future = offset_promise->get_future();
+  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::GET_OFFSET, servo_num};
   this->send_module(data);
-  return true;
+
+  std::optional<uint16_t> offset;
+
+  // TODO: Wait probably toolong
+  if (future.wait_for(100ms) == std::future_status::ready) {
+    auto [id, offset_value] = future.get();
+
+    assert(id == servo_num);
+    offset = offset_value;
+  }
+
+  offset_promise.reset();
+
+  return offset;
 }
 
 uint8_t HiwonderServo_module::get_servo_num(uint8_t servo_id) {
@@ -170,16 +218,21 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
     return;
   } break;
   case HIWONDER_SERVO_RESPONSES::SERVO_VERIFY: {
-    verify_cb(data[1], data[2]);
+    assert(verify_id_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
+    verify_id_promise->set_value({(uint8_t)data[1], (bool)data[2]});
     return;
   } break;
-  case HIWONDER_SERVO_RESPONSES::SERVO_RANGE: { // TODO: wss kloppen deze ook
-                                                // niet...
-    range_cb(data[1], data[2] + (data[3] << 8), data[4] + (data[5] << 8));
-    return;
+  case HIWONDER_SERVO_RESPONSES::SERVO_RANGE: {
+    assert(range_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
+    range_promise->set_value(
+      {(uint8_t)data[1],
+       {(((uint16_t)data[2] << 8) + (uint16_t)data[3]),
+        (((uint16_t)data[4] << 8) + (uint16_t)data[5])}});
+      return;
   } break;
   case HIWONDER_SERVO_RESPONSES::SERVO_OFFSET: {
-    offset_cb(data[1], data[2] + (data[3] << 8));
+    assert(offset_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
+    offset_promise->set_value(std::make_tuple((uint8_t)data[1], (uint16_t)(((uint16_t)data[2] << 8) + data[3])));
     return;
   } break;
 

@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <optional>
+#include <future>
+#include <tuple>
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -41,11 +44,7 @@ public:
   };
   HiwonderServo_module(uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin,
                        std::vector<uint8_t> servo_ids,
-                       std::function<void(std::vector<Servo_pos>)> position_cb,
-                       std::function<void(int, bool)> verify_cb,
-                       std::function<void(int, uint16_t, uint16_t)> range_cb,
-                       std::function<void(int, uint16_t)> offset_cb
-
+                       std::function<void(std::vector<Servo_pos>)> position_cb
   ); // + some callbacks
   // bool set_pwm(uint8_t channel, uint16_t high, uint16_t low=0);
   // struct PWM_val {
@@ -63,20 +62,17 @@ public:
   bool set_enable_servo(uint8_t servo_id, bool enable);
   bool set_enabled_all(bool enable);
   bool set_id(uint8_t new_id, uint8_t old_id = 0xFF);
-  bool verify_id(uint8_t id);
+  bool verify_id(uint8_t servo_id);
   bool set_range(uint8_t servo_id, uint16_t min, uint16_t max);
   bool set_voltage_range(uint8_t servo_id, float min, float max);
   bool set_offset(uint8_t servo_id, uint16_t offset);
-  bool get_range(uint8_t servo_id);
-  bool get_offset(uint8_t servo_id);
+  std::optional<std::tuple<uint16_t, uint16_t>> get_range(uint8_t servo_id);
+  std::optional<uint16_t> get_offset(uint8_t servo_id);
 
   uint8_t get_servo_num(uint8_t servo_id);
 
   std::vector<uint8_t> init_data();
   std::function<void(std::vector<Servo_pos>)> position_cb;
-  std::function<void(int, bool)> verify_cb;
-  std::function<void(int, uint16_t, uint16_t)> range_cb;
-  std::function<void(int, uint16_t)> offset_cb;
   void
   attach_send_module(std::function<void(std::vector<uint8_t>)> send_module);
 
@@ -84,6 +80,11 @@ private:
   uint8_t uart_port;
   uint8_t rx_pin;
   uint8_t tx_pin;
+
+  // std::optional<std::promise<void>> position_promise;
+  std::optional<std::promise<std::tuple<uint8_t, bool>>> verify_id_promise;
+  std::optional<std::promise<std::tuple<uint8_t, std::tuple<uint16_t, uint16_t>>>> range_promise;
+  std::optional<std::promise<std::tuple<uint8_t, uint16_t>>> offset_promise;
 };
 
 }
