@@ -86,7 +86,7 @@ bool HiwonderServo_module::verify_id(uint8_t servo_id) {
   auto ok = false;
 
   // TODO: Wait probably toolong
-  if (future.wait_for(1000ms) == std::future_status::ready) {
+  if (future.wait_for(100ms) == std::future_status::ready) {
     auto [id, ok_value] = future.get();
     assert(id == servo_id);
     ok = ok_value;
