@@ -1,8 +1,11 @@
 #pragma once
+#include <chrono>
 #include <future>
 #include <string>
 
 #include "tmx_cpp/modules/Module_t.hpp"
+
+using namespace std::chrono_literals;
 
 namespace tmx_cpp
 {
@@ -27,8 +30,9 @@ public:
   // FIXME: Maybe give this a default implementation, since all implementations are the same.
   virtual void attach_send_module(std::function<void(std::vector<uint8_t>)> send_module) override;
 
-  bool send_text(std::string text);
-  bool send_image(uint8_t width, uint8_t height, uint8_t img_buffer[]);
+  bool send_text(std::string text, std::chrono::milliseconds timeout = 200ms);
+  bool send_image(
+    uint8_t width, uint8_t height, uint8_t img_buffer[], std::chrono::milliseconds timeout = 500ms);
 
   /// The character limit of the OLED display.
   /// 132 is the maximum amount of characters that fits on the 128x64 OLED with

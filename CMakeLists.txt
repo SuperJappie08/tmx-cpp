@@ -20,6 +20,7 @@ add_library(tmx_cpp
   STATIC
   src/tmx.cpp
   src/tmx_util.cpp
+  src/serialization.cpp
   src/modules.cpp
   src/modules/HiwonderServo.cpp
   src/modules/PCA9685.cpp
@@ -32,3 +33,11 @@ add_library(tmx_cpp
 
 # Link Boost libraries
 target_link_libraries(tmx_cpp Boost::system Boost::thread async_serial)
+
+add_executable(${PROJECT_NAME}_test_serialization
+  test/test_serialization.cpp
+)
+target_link_libraries(${PROJECT_NAME}_test_serialization tmx_cpp)
+
+add_test(NAME test_serialization
+    COMMAND ${PROJECT_NAME}_test_serialization)

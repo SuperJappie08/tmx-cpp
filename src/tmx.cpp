@@ -9,6 +9,8 @@
 #include <string>
 #include <utility>
 
+#include <tmx_cpp/serialization.hpp>
+
 #ifdef TMX_HW_DEBUG
 #define POOL_SIZE 1
 #else
@@ -135,7 +137,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
   } break;
   case TMX::MESSAGE_IN_TYPE::ANALOG_REPORT: {
     auto pin = message[2];
-    auto value = (message[3] << 8) | message[4];
+    auto value = decode_u16(std::span(message).subspan<3, sizeof(uint16_t)>()); 
     for (const auto &callback : this->analog_callbacks_pin) {
       if (callback.first == pin) {
         callback.second(pin + 26, value);
@@ -172,7 +174,8 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     auto pin = message[2];
 
     // The distance value in centimeters, a left over from the original Telemetrix protocol.
-    auto value = (message[3] << 8) + message[4];
+    auto value = decode_u16(std::span(message).subspan<3, sizeof(uint16_t)>());
+
     for (const auto &callback : this->sonar_callbacks_pin) {
       if (callback.first == pin) {
         callback.second(pin, value);
@@ -198,7 +201,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     for (const auto &callback : this->debug_print_callbacks) {
       callback(message);
     }
-    uint16_t val = ((uint16_t)message[3]) << 8 | message[4];
+    uint16_t val = decode_u16(std::span(message).subspan<3,2>());
 
     std::cout << "Debug print: " << std::dec << (uint)message[2] << " "
               << std::dec << (uint16_t)(val) << std::endl;
@@ -296,9 +299,12 @@ void TMX::setPinMode(uint8_t pin, TMX::PIN_MODES mode, bool reporting,
       return;
     }
     pin -= 26;
-    message = std::vector<uint8_t>{
-        pin, mode, (uint8_t)((analog_differential >> 8) & 0xff),
-        (uint8_t)(analog_differential & 0xff), reporting};
+    message = std::vector<uint8_t>{pin, mode};
+    // message.reserve(message.size() + sizeof(uint16_t) + sizeof(reporting));
+
+    append_range(message, encode_u16(analog_differential));
+    message.push_back((uint8_t)reporting);
+
     break;
   default:
     break;
@@ -312,8 +318,8 @@ void TMX::digitalWrite(uint8_t pin, bool value) {
   this->sendMessage(TMX::MESSAGE_TYPE::DIGITAL_WRITE, message);
 }
 void TMX::pwmWrite(uint8_t pin, uint16_t value) {
-  std::vector<uint8_t> message = {pin, (uint8_t)(value >> 8),
-                                  (uint8_t)(value & 0xFF)};
+  std::vector<uint8_t> message = {pin};
+  append_range(message, encode_u16(value));
   this->sendMessage(TMX::MESSAGE_TYPE::PWM_WRITE, message);
 }
 void TMX::add_callback(
@@ -415,20 +421,22 @@ void TMX::attach_sonar(uint8_t trigger, uint8_t echo,
 
 void TMX::attach_servo(uint8_t pin, uint16_t min_pulse, uint16_t max_pulse) {
   // Arduino expects 5 bytes [pin, min_h, min_l, max_h, max_l]
-  uint8_t min_pulses_bytes[2];
-  uint8_t max_pulses_bytes[2];
+  std::vector<uint8_t> msg = {pin};
+  // msg.reserve(5);
 
-  min_pulses_bytes[0] = (uint8_t)(min_pulse >> 8);
-  min_pulses_bytes[1] = (uint8_t)(min_pulse & 0xff);
+  append_range(msg, encode_u16(min_pulse));
+  append_range(msg, encode_u16(max_pulse));
 
-  max_pulses_bytes[0] = (uint8_t)(max_pulse >> 8);
-  max_pulses_bytes[1] = (uint8_t)(max_pulse & 0xff);
-  
-  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_ATTACH, {pin, min_pulses_bytes[0], min_pulses_bytes[1], max_pulses_bytes[0], max_pulses_bytes[1]});
+  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_ATTACH, msg);
 }
 
 void TMX::write_servo(uint8_t pin, uint16_t duty_cycle) {
-  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_WRITE, {pin, (uint8_t)(duty_cycle >> 8), (uint8_t)(duty_cycle & 0xff)});
+  std::vector<uint8_t> msg = {pin};
+  // msg.reserve(3);
+
+  append_range(msg, encode_u16(duty_cycle));
+
+  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_WRITE, msg);
 }
 
 void TMX::detach_servo(uint8_t pin) {

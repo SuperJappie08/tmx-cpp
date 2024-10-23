@@ -1,6 +1,8 @@
 #include <chrono>
+#include <ranges>
 
 #include <tmx_cpp/modules/HiwonderServo.hpp>
+#include <tmx_cpp/serialization.hpp>
 
 using namespace tmx_cpp;
 using namespace std::chrono_literals;
@@ -23,12 +25,16 @@ bool HiwonderServo_module::set_single_servo(uint8_t servo_id, uint16_t angle,
                                             uint16_t time) {
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_SERVO,
                                1,
-                               get_servo_num(servo_id),
-                               (uint8_t)(angle >> 8),
-                               (uint8_t)(angle & 0xFF),
+                               get_servo_num(servo_id)};//,
+  data.reserve(data.size()+ 2*sizeof(uint16_t));
 
-                               (uint8_t)(time >> 8),
-                               (uint8_t)(time & 0xFF)};
+  append_range(data, encode_u16(angle));
+  append_range(data, encode_u16(time));
+                              //  (uint8_t)(angle >> 8),
+                              //  (uint8_t)(angle & 0xFF),
+
+                              //  (uint8_t)(time >> 8),
+                              //  (uint8_t)(time & 0xFF)};
   this->send_module(data);
   return true;
 }
@@ -37,14 +43,19 @@ bool HiwonderServo_module::set_multiple_servos(
     std::vector<std::pair<uint8_t, uint16_t>> servo_vals, uint16_t time) {
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_SERVO,
                                (uint8_t)servo_vals.size()};
+  data.reserve(data.size() + servo_vals.size() * (2 * sizeof(uint16_t) + sizeof(uint8_t)));
+
+  auto time_bytes = encode_u16(time);
   for (auto servo_val : servo_vals) {
     data.push_back(get_servo_num(servo_val.first));
     // FIXME: Do these need to be flipped????
-    data.push_back((uint8_t)(servo_val.second & 0xFF));
-    data.push_back((uint8_t)(servo_val.second >> 8));
+    append_range(data, encode_u16(servo_val.second));
+    // data.push_back((uint8_t)(servo_val.second & 0xFF));
+    // data.push_back((uint8_t)(servo_val.second >> 8));
 
-    data.push_back((uint8_t)(time & 0xFF));
-    data.push_back((uint8_t)(time >> 8));
+    // data.push_back((uint8_t)(time & 0xFF));
+    // data.push_back((uint8_t)(time >> 8));
+    append_range(data, time_bytes);
   }
   this->send_module(data);
   return true;
@@ -99,12 +110,14 @@ bool HiwonderServo_module::verify_id(uint8_t servo_id) {
 
 bool HiwonderServo_module::set_range(uint8_t servo_id, uint16_t min,
                                      uint16_t max) {
-  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_RANGE,
-                               get_servo_num(servo_id),
-                               (uint8_t)(min & 0xFF),
-                               (uint8_t)(min >> 8),
-                               (uint8_t)(max & 0xFF),
-                               (uint8_t)(max >> 8)};
+  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_RANGE, get_servo_num(servo_id)};
+  // data.reserve(data.size() + 2 * sizeof(uint16_t));
+
+  auto min_bytes = encode_u16(min);
+  auto max_bytes = encode_u16(max);
+
+  data.insert(data.end(), min_bytes.begin(), min_bytes.end());
+  data.insert(data.end(), max_bytes.begin(), max_bytes.end());
 
   this->send_module(data);
   return true;
@@ -115,11 +128,11 @@ bool HiwonderServo_module::set_voltage_range(uint8_t servo_id, float minf,
   uint16_t min = (uint16_t)(minf * 1000); // convert to mV
   uint16_t max = (uint16_t)(maxf * 1000);
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_VOLTAGE_RANGE,
-                               get_servo_num(servo_id),
-                               (uint8_t)(min & 0xFF),
-                               (uint8_t)(min >> 8),
-                               (uint8_t)(max & 0xFF),
-                               (uint8_t)(max >> 8)};
+                               get_servo_num(servo_id)};
+  // data.reserve(data.size() + 2*sizeof(uint16_t));
+
+  append_range(data, encode_u16(min));
+  append_range(data, encode_u16(max));
 
   this->send_module(data);
   return true;
@@ -127,8 +140,9 @@ bool HiwonderServo_module::set_voltage_range(uint8_t servo_id, float minf,
 
 bool HiwonderServo_module::set_offset(uint8_t servo_id, uint16_t offset) {
   std::vector<uint8_t> data = {
-      HIWONDER_SERVO_COMMANDS::SET_OFFSET, get_servo_num(servo_id),
-      (uint8_t)(offset & 0xFF), (uint8_t)(offset >> 8)};
+      HIWONDER_SERVO_COMMANDS::SET_OFFSET, get_servo_num(servo_id)};//,
+  // data.reserve(data.size() + sizeof(uint16_t));
+  append_range(data, encode_u16(offset));
 
   this->send_module(data);
   return true;
@@ -203,7 +217,7 @@ std::vector<uint8_t> HiwonderServo_module::init_data() {
 }
 
 void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
-
+  auto data_span = std::span(data);
   auto message_type = (HIWONDER_SERVO_RESPONSES)data[0];
   switch (message_type) {
   case HIWONDER_SERVO_RESPONSES::SERVO_POSITION: {
@@ -211,7 +225,7 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
     for (size_t i = 1; i < data.size(); i += 3) {
       Servo_pos pos;
       pos.id = servo_ids[data[i]];
-      pos.angle = data[i + 2] + (data[i + 1] << 8);
+      pos.angle = decode_u16(data_span.subspan(i+1).first<2>());
       servo_positions.push_back(pos);
     }
     position_cb(servo_positions);
@@ -226,13 +240,15 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
     assert(range_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
     range_promise->set_value(
       {(uint8_t)data[1],
-       {(((uint16_t)data[2] << 8) + (uint16_t)data[3]),
-        (((uint16_t)data[4] << 8) + (uint16_t)data[5])}});
-      return;
+       {
+         decode_u16(data_span.subspan<2, sizeof(uint16_t)>()),
+         decode_u16(data_span.subspan<4, sizeof(uint16_t)>()),
+       }});
+    return;
   } break;
   case HIWONDER_SERVO_RESPONSES::SERVO_OFFSET: {
     assert(offset_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
-    offset_promise->set_value(std::make_tuple((uint8_t)data[1], (uint16_t)(((uint16_t)data[2] << 8) + data[3])));
+    offset_promise->set_value({(uint8_t)data[1], decode_u16(data_span.subspan<2,sizeof(uint16_t)>())});
     return;
   } break;
 

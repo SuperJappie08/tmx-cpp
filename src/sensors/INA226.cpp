@@ -1,6 +1,9 @@
 #include <bit>
 #include <cassert>
 #include <iostream>
+#include <span>
+
+#include <tmx_cpp/serialization.hpp>
 #include <tmx_cpp/sensors/INA226.hpp>
 
 using namespace tmx_cpp;
@@ -28,14 +31,9 @@ void INA226_module::data_callback(std::vector<uint8_t> data) {
   static_assert(sizeof(float) == sizeof(uint32_t));
   static_assert(sizeof(float) == 4);
   assert(data.size() == 8);
+  auto data_span = std::span(data);
 
-  uint32_t temp = (uint32_t)(((uint32_t)data[3]) << 24) |
-                  (((uint32_t)data[2]) << 16) | (((uint32_t)data[1]) << 8) |
-                  ((uint32_t)data[0]);
-  ;
-  float voltage_f = std::bit_cast<float>(temp);
-  temp = (((uint32_t)data[7]) << 24) | (((uint32_t)data[6]) << 16) |
-         (((uint32_t)data[5]) << 8) | ((uint32_t)data[4]);
-  float current_f = std::bit_cast<float>(temp);
+  float voltage_f = decode_float(data_span.first<sizeof(float)>());
+  float current_f = decode_float(data_span.subspan<sizeof(float),sizeof(float)>());
   data_cb(voltage_f, current_f);
 }
