@@ -26,6 +26,7 @@ add_library(tmx_cpp
   src/modules/PCA9685.cpp
   src/modules/SSD1306_oled.cpp
   src/sensors.cpp
+  src/sensors/ADXL345.cpp
   src/sensors/INA226.cpp
   src/sensors/MPU9250.cpp
   src/sensors/VEML6040.cpp
