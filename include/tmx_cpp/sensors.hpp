@@ -19,9 +19,8 @@ class TMX;
 class Sensors {
 public:
   size_t add_sensor(uint8_t sens_num, SENSOR_TYPE type, std::vector<uint8_t> data,
-                 std::function<void(std::vector<uint8_t>)> callback);
-  std::vector<std::pair<SENSOR_TYPE, std::function<void(std::vector<uint8_t>)>>>
-      sensors;
+                    std::function<void(std::vector<uint8_t>)> callback);
+  std::vector<std::pair<SENSOR_TYPE, std::function<void(std::vector<uint8_t>)>>> sensors;
   // void add_adxl345(uint8_t i2c_port,
   //                  std::function<void(std::vector<uint8_t>)>
   //                      callback); // todo: change to adxl data function
@@ -35,6 +34,6 @@ public:
 private:
 };
 
-}
+} // namespace tmx_cpp
 
 #include "tmx.hpp" // fix for circular dependency

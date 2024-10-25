@@ -6,7 +6,7 @@ namespace tmx_cpp {
 
 enum SENSOR_TYPE : uint8_t {
   MPU9250 = 0x02,
-  VEML6040 = 0x04,  // TODO: Not implemented
+  VEML6040 = 0x04, // TODO: Not implemented
   ADXL345 = 0x05,  // // TODO:  Not implemented
   INA226 = 0x06,
 };
@@ -20,4 +20,4 @@ enum SENSOR_TYPE : uint8_t {
 // INA226 = 6
 // HMC5883 = 7
 
-}
+} // namespace tmx_cpp

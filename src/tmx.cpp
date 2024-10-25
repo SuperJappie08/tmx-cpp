@@ -19,22 +19,19 @@
 
 using namespace tmx_cpp;
 
-TMX::TMX(std::function<void()> stop_func, std::string port) : parsePool(POOL_SIZE), stop_func(stop_func) {
+TMX::TMX(std::function<void()> stop_func, std::string port)
+    : parsePool(POOL_SIZE), stop_func(stop_func) {
   this->serial = std::make_shared<CallbackAsyncSerial>(port, 115200);
-  this->serial->setCallback(
-      [this](const char *data, size_t len) { this->callback(data, len); });
+  this->serial->setCallback([this](const char *data, size_t len) { this->callback(data, len); });
 
   this->ping_thread = std::thread(&TMX::ping_task, this);
-  this->add_callback(
-    MESSAGE_IN_TYPE::PONG_REPORT,
-    std::bind(&TMX::ping_callback, this, std::placeholders::_1));
+  this->add_callback(MESSAGE_IN_TYPE::PONG_REPORT,
+                     std::bind(&TMX::ping_callback, this, std::placeholders::_1));
   // this->add_callback(
   //   MESSAGE_IN_TYPE::ANALOG_REPORT, [](std::vector<uint8_t> t) { t[1] = 3; });
 }
 
-TMX::~TMX() {
-  this->stop();
-}
+TMX::~TMX() { this->stop(); }
 
 void TMX::callback(const char *data, size_t len) {
   // std::cout << "callback" << std::endl;
@@ -93,8 +90,7 @@ void TMX::parseOne(const std::vector<uint8_t> &message) {
   std::cout << std::endl;
 #endif
 
-  boost::asio::post(this->parsePool,
-                    std::bind(&TMX::parseOne_task, this, message));
+  boost::asio::post(this->parsePool, std::bind(&TMX::parseOne_task, this, message));
 }
 
 void TMX::parseOne_task(const std::vector<uint8_t> &message) {
@@ -110,8 +106,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     }
   } break;
   case TMX::MESSAGE_IN_TYPE::FIRMWARE_REPORT:
-    std::cout << "firmware version: " << (int)message[2] << '.'
-              << (int)message[3] << std::endl;
+    std::cout << "firmware version: " << (int)message[2] << '.' << (int)message[3] << std::endl;
     break;
   case TMX::MESSAGE_IN_TYPE::REPORT_PICO_UNIQUE_ID:
     std::cout << "pico unique id: ";
@@ -137,7 +132,7 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
   } break;
   case TMX::MESSAGE_IN_TYPE::ANALOG_REPORT: {
     auto pin = message[2];
-    auto value = decode_u16(std::span(message).subspan<3, sizeof(uint16_t)>()); 
+    auto value = decode_u16(std::span(message).subspan<3, sizeof(uint16_t)>());
     for (const auto &callback : this->analog_callbacks_pin) {
       if (callback.first == pin) {
         callback.second(pin + 26, value);
@@ -201,10 +196,10 @@ void TMX::parseOne_task(const std::vector<uint8_t> &message) {
     for (const auto &callback : this->debug_print_callbacks) {
       callback(message);
     }
-    uint16_t val = decode_u16(std::span(message).subspan<3,2>());
+    uint16_t val = decode_u16(std::span(message).subspan<3, 2>());
 
-    std::cout << "Debug print: " << std::dec << (uint)message[2] << " "
-              << std::dec << (uint16_t)(val) << std::endl;
+    std::cout << "Debug print: " << std::dec << (uint)message[2] << " " << std::dec
+              << (uint16_t)(val) << std::endl;
     // std::cout << "debug len:" << std::dec << (uint)message.size() <<
     // std::endl; for(auto i = 0; i < message.size(); i++) {
     //   std::cout << "debug " << i << ":" << std::dec << (uint)message[i] <<
@@ -265,11 +260,9 @@ void TMX::sendMessage(const std::vector<uint8_t> &message) {
 /**
  * Send a message with some type. Length added automatically.
  */
-void TMX::sendMessage(TMX::MESSAGE_TYPE type,
-                      const std::vector<uint8_t> &message) {
+void TMX::sendMessage(TMX::MESSAGE_TYPE type, const std::vector<uint8_t> &message) {
   std::vector<char> charMessage(message.begin(), message.end());
-  charMessage.insert(charMessage.begin(),
-                     {(char)(charMessage.size() + 1), (char)type});
+  charMessage.insert(charMessage.begin(), {(char)(charMessage.size() + 1), (char)type});
 
 #ifdef TMX_TX_DEBUG
   std::cout << "T charMessage = ";
@@ -322,9 +315,8 @@ void TMX::pwmWrite(uint8_t pin, uint16_t value) {
   append_range(message, encode_u16(value));
   this->sendMessage(TMX::MESSAGE_TYPE::PWM_WRITE, message);
 }
-void TMX::add_callback(
-    MESSAGE_IN_TYPE type,
-    std::function<void(const std::vector<uint8_t> &)> callback) {
+void TMX::add_callback(MESSAGE_IN_TYPE type,
+                       std::function<void(const std::vector<uint8_t> &)> callback) {
   switch (type) {
   case TMX::MESSAGE_IN_TYPE::PONG_REPORT:
     this->ping_callbacks.push_back(callback);
@@ -386,19 +378,16 @@ void TMX::add_callback(
   }
 }
 
-void TMX::add_digital_callback(uint8_t pin,
-                               std::function<void(uint8_t, uint8_t)> callback) {
+void TMX::add_digital_callback(uint8_t pin, std::function<void(uint8_t, uint8_t)> callback) {
   this->digital_callbacks_pin.push_back({pin, callback});
 }
 
-void TMX::add_analog_callback(uint8_t pin,
-                              std::function<void(uint8_t, uint16_t)> callback) {
+void TMX::add_analog_callback(uint8_t pin, std::function<void(uint8_t, uint16_t)> callback) {
   if (pin < 26 || pin > 30) { // only pins 26-30 are analog
     return;
   }
   this->analog_callbacks_pin.push_back({pin - 26, callback});
-  std::cout << "analog_callbacks_pin size = "
-            << this->analog_callbacks_pin.size() << std::endl;
+  std::cout << "analog_callbacks_pin size = " << this->analog_callbacks_pin.size() << std::endl;
 }
 
 void TMX::attach_encoder(uint8_t pin_A, uint8_t pin_B,
@@ -417,7 +406,6 @@ void TMX::attach_sonar(uint8_t trigger, uint8_t echo,
   this->sonar_callbacks_pin.push_back({trigger, callback});
   this->sendMessage(TMX::MESSAGE_TYPE::SONAR_NEW, {trigger, echo});
 }
-
 
 void TMX::attach_servo(uint8_t pin, uint16_t min_pulse, uint16_t max_pulse) {
   // Arduino expects 5 bytes [pin, min_h, min_l, max_h, max_l]
@@ -439,9 +427,7 @@ void TMX::write_servo(uint8_t pin, uint16_t duty_cycle) {
   this->sendMessage(TMX::MESSAGE_TYPE::SERVO_WRITE, msg);
 }
 
-void TMX::detach_servo(uint8_t pin) {
-  this->sendMessage(TMX::MESSAGE_TYPE::SERVO_DETACH, {pin});
-}
+void TMX::detach_servo(uint8_t pin) { this->sendMessage(TMX::MESSAGE_TYPE::SERVO_DETACH, {pin}); }
 
 void TMX::setScanDelay(uint8_t delay) {
   if (delay < 5) {
@@ -484,9 +470,9 @@ bool TMX::setI2CPins(uint8_t sda, uint8_t scl, uint8_t port) {
   return true;
 }
 
-std::pair<bool, std::vector<uint8_t>>
-TMX::parse_buffer_for_message(std::vector<uint8_t> &buffer, uint8_t wanted_len,
-                              uint8_t wanted_type) {
+std::pair<bool, std::vector<uint8_t>> TMX::parse_buffer_for_message(std::vector<uint8_t> &buffer,
+                                                                    uint8_t wanted_len,
+                                                                    uint8_t wanted_type) {
   if (buffer.size() < wanted_len) {
     return {false, {}};
   }
@@ -529,14 +515,12 @@ bool TMX::check_port(const std::string &port) {
         buffer.insert(buffer.end(), data, data + len);
       });
       buffer.clear();
-      serial->write(
-          {0, 0, 0, 0, 0, 0, 0, 1,
-           MESSAGE_TYPE::FIRMWARE_VERSION}); // send a get fw version message
+      serial->write({0, 0, 0, 0, 0, 0, 0, 1,
+                     MESSAGE_TYPE::FIRMWARE_VERSION}); // send a get fw version message
       std::this_thread::sleep_for(
           std::chrono::milliseconds(100)); // pico should respond within 100ms
       serial->close();
-      auto out = TMX::parse_buffer_for_message(
-          buffer, 4, MESSAGE_IN_TYPE::FIRMWARE_REPORT);
+      auto out = TMX::parse_buffer_for_message(buffer, 4, MESSAGE_IN_TYPE::FIRMWARE_REPORT);
       if (out.first) {
         return true;
       } else {
@@ -575,7 +559,6 @@ const std::vector<TMX::serial_port> TMX::accepted_ports = {
 #include <iostream>
 #include <string>
 #include <tmx_cpp/tmx_util.hpp>
-#include <boost/format.hpp> // std::format not yet supported
 std::vector<TMX::serial_port> TMX::get_available_ports() {
   std::vector<serial_port> port_names;
   namespace fs = std::filesystem;
@@ -593,22 +576,18 @@ std::vector<TMX::serial_port> TMX::get_available_ports() {
           std::cout << canonical_path.generic_string() << std::endl;
           sp.port_name = canonical_path.generic_string();
 
-          auto out = exec(
-              (boost::format("udevadm info --name=%s | grep 'ID_VENDOR_ID'") %
-               canonical_path.generic_string())
-                  .str());
+          auto out = exec((boost::format("udevadm info --name=%s | grep 'ID_VENDOR_ID'") %
+                           canonical_path.generic_string())
+                              .str());
 
-          out = out.substr(out.find('=') +
-                           1); // ID_VENDOR_ID=0403, only get the 0403
+          out = out.substr(out.find('=') + 1);  // ID_VENDOR_ID=0403, only get the 0403
           sp.pid = std::stoi(out, nullptr, 16); // convert to int
-          out = exec(
-              (boost::format("udevadm info --name=%s | grep ID_MODEL_ID=") %
-               canonical_path.generic_string())
-                  .str());
+          out = exec((boost::format("udevadm info --name=%s | grep ID_MODEL_ID=") %
+                      canonical_path.generic_string())
+                         .str());
           out = out.substr(out.find('=') + 1);
           sp.vid = std::stoi(out, nullptr, 16);
-          std::cout << sp.port_name << " " << sp.vid << ":" << sp.pid
-                    << std::endl;
+          std::cout << sp.port_name << " " << sp.vid << ":" << sp.pid << std::endl;
           port_names.push_back(sp);
         }
       }
@@ -638,12 +617,10 @@ uint8_t TMX::get_id(const TMX::serial_port &port) {
     buffer.insert(buffer.end(), data, data + len);
   });
   buffer.clear();
-  serial->write({1, MESSAGE_TYPE::GET_ID}); // send a get id message
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(1000)); // pico should respond within 100ms
+  serial->write({1, MESSAGE_TYPE::GET_ID});                     // send a get id message
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pico should respond within 100ms
   serial->close();
-  auto out =
-      TMX::parse_buffer_for_message(buffer, 3, MESSAGE_IN_TYPE::GET_ID_REPORT);
+  auto out = TMX::parse_buffer_for_message(buffer, 3, MESSAGE_IN_TYPE::GET_ID_REPORT);
   if (out.first) {
     return out.second[1];
   } else {
@@ -661,9 +638,8 @@ bool TMX::set_id(const TMX::serial_port &port, uint8_t id) {
   });
   buffer.clear();
   std::cout << "setting to id: " << (int)id << std::endl;
-  serial->write({2, MESSAGE_TYPE::SET_ID, (char)id}); // send a set id message
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(2000)); // pico should respond within 100ms
+  serial->write({2, MESSAGE_TYPE::SET_ID, (char)id});           // send a set id message
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // pico should respond within 100ms
   serial->close();
   if (buffer.size() < 3) {
     std::cout << "no data" << std::endl;
@@ -674,14 +650,12 @@ bool TMX::set_id(const TMX::serial_port &port, uint8_t id) {
     std::cout << std::hex << (int)i << " ";
   }
   std::cout << std::endl;
-  auto out =
-      TMX::parse_buffer_for_message(buffer, 3, MESSAGE_IN_TYPE::SET_ID_REPORT);
+  auto out = TMX::parse_buffer_for_message(buffer, 3, MESSAGE_IN_TYPE::SET_ID_REPORT);
   // expected message: {2, MESSAGE_IN_TYPE::SET_ID_REPORT, id}
   return out.first && out.second[1] == id;
 }
 
-void TMX::ping_task()
-{
+void TMX::ping_task() {
   uint8_t num = 0;
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   while (!this->is_stopped) {
@@ -689,14 +663,14 @@ void TMX::ping_task()
     this->sendPing(num);
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
     if ((num - this->last_ping) > 2) {
-      std::cout << "\033[1;31mTelemetrix stopped due to missed pings | Missed: " << ((int)((num - this->last_ping))) <<"\033[0m"<< std::endl;
+      std::cout << "\033[1;31mTelemetrix stopped due to missed pings | Missed: "
+                << ((int)((num - this->last_ping))) << "\033[0m" << std::endl;
       this->stop_func();
     }
   }
 }
 
-void TMX::ping_callback(const std::vector<uint8_t> message)
-{
+void TMX::ping_callback(const std::vector<uint8_t> message) {
   if (this->first_magic) {
     this->magic = message[3];
     this->first_magic = false;

@@ -1,14 +1,14 @@
 #pragma once
-#include <stdint.h>
+#include "tmx_cpp/sensors/Sensor_t.hpp"
 #include <array>
 #include <functional>
-#include "tmx_cpp/sensors/Sensor_t.hpp"
+#include <stdint.h>
 
 namespace tmx_cpp {
 
-using MPU9250_cb_t = std::function<void(
-  std::array<float, 3> acceleration, std::array<float, 3> gyro, std::array<float, 3> magnetic_field,
-  std::array<float, 4> quaternion)>;
+using MPU9250_cb_t =
+    std::function<void(std::array<float, 3> acceleration, std::array<float, 3> gyro,
+                       std::array<float, 3> magnetic_field, std::array<float, 4> quaternion)>;
 class MPU9250_module : public Sensor_type {
 public:
   std::function<void(std::vector<uint8_t>)> send_module;
@@ -23,4 +23,4 @@ private:
   uint8_t address = 0x68;
 };
 
-}  // namespace tmx_cpp
+} // namespace tmx_cpp

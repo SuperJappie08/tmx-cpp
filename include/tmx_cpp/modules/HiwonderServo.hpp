@@ -21,7 +21,7 @@ public:
   std::function<void(std::vector<uint8_t>)> send_module;
   std::vector<uint8_t> servo_ids;
   enum HIWONDER_SERVO_COMMANDS : uint8_t {
-    SET_SERVO = 1,  // 2nd byte is the number of servos
+    SET_SERVO = 1, // 2nd byte is the number of servos
     SET_ENABLE = 2,
     SET_ID = 3,
     VERIFY_ID = 4,
@@ -42,9 +42,9 @@ public:
     uint16_t angle;
     uint16_t time;
   };
-  HiwonderServo_module(
-    uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin, std::vector<uint8_t> servo_ids,
-    std::function<void(std::vector<Servo_pos>)> position_cb);  // + some callbacks
+  HiwonderServo_module(uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin,
+                       std::vector<uint8_t> servo_ids,
+                       std::function<void(std::vector<Servo_pos>)> position_cb); // + some callbacks
   // bool set_pwm(uint8_t channel, uint16_t high, uint16_t low=0);
   // struct PWM_val {
   //     uint8_t channel;
@@ -52,11 +52,11 @@ public:
   //     uint16_t low = 0;
   // };
   // bool set_multiple_pwm(std::vector<PWM_val> pwm_vals);
-  void data_callback(std::vector<uint8_t> data);  // when receiving data from the servos back
+  void data_callback(std::vector<uint8_t> data); // when receiving data from the servos back
 
   bool set_single_servo(uint8_t servo_id, uint16_t angle, uint16_t time = 100);
-  bool set_multiple_servos(
-    std::vector<std::pair<uint8_t, uint16_t>> servo_vals, uint16_t time = 100);
+  bool set_multiple_servos(std::vector<std::pair<uint8_t, uint16_t>> servo_vals,
+                           uint16_t time = 100);
   bool set_enable_servo(uint8_t servo_id, bool enable);
   bool set_enabled_all(bool enable);
   bool set_id(uint8_t new_id, uint8_t old_id = 0xFF);
@@ -84,4 +84,4 @@ private:
   std::optional<std::promise<std::tuple<uint8_t, uint16_t>>> offset_promise;
 };
 
-}  // namespace tmx_cpp
+} // namespace tmx_cpp

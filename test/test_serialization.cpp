@@ -4,8 +4,7 @@
 
 #include <tmx_cpp/serialization.hpp>
 
-int main()
-{
+int main() {
   // TEST uint16_t
   {
     uint16_t num = 0;
@@ -47,7 +46,8 @@ int main()
   }
 
   std::cout << "\r >>> DONE ";
-  for (int idx = 0; idx < (64 - 11); idx++) std::cout << " ";
+  for (int idx = 0; idx < (64 - 11); idx++)
+    std::cout << " ";
   std::cout << std::endl;
   return 0;
 }

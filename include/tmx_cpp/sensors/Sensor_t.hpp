@@ -14,4 +14,4 @@ public:
   virtual ~Sensor_type() = default;
 };
 
-}
+} // namespace tmx_cpp

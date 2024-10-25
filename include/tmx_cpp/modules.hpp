@@ -12,18 +12,17 @@
 #include <utility>
 #include <vector>
 
+#include "tmx_cpp/modules/Module_t.hpp"
 #include <tmx_cpp/modules/HiwonderServo.hpp>
 #include <tmx_cpp/modules/PCA9685.hpp>
-#include "tmx_cpp/modules/Module_t.hpp"
 
 namespace tmx_cpp {
 
 class TMX;
 class Modules {
 public:
-  int add_module(
-    uint8_t mod_num, MODULE_TYPE type, std::vector<uint8_t> data,
-    std::function<void(std::vector<uint8_t>)> callback);
+  int add_module(uint8_t mod_num, MODULE_TYPE type, std::vector<uint8_t> data,
+                 std::function<void(std::vector<uint8_t>)> callback);
   std::vector<std::pair<MODULE_TYPE, std::function<void(std::vector<uint8_t>)>>> modules;
   std::shared_ptr<TMX> tmx;
 
@@ -39,6 +38,6 @@ private:
 };
 void empty_callback(std::vector<uint8_t> data);
 
-}  // namespace tmx_cpp
+} // namespace tmx_cpp
 
-#include "tmx.hpp"  // fix for circular dependency
+#include "tmx.hpp" // fix for circular dependency

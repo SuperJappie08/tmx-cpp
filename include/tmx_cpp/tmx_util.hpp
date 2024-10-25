@@ -11,6 +11,6 @@
 namespace tmx_cpp {
 
 // same as in mirte-telemetrix-cpp/src/util.cpp
-std::string exec(const std::string & cmd);
+std::string exec(const std::string &cmd);
 
-}  // namespace tmx_cpp
+} // namespace tmx_cpp

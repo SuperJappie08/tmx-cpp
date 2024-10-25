@@ -23,4 +23,4 @@ private:
   uint8_t address = 0x53;
 };
 
-}  // namespace tmx_cpp
+} // namespace tmx_cpp

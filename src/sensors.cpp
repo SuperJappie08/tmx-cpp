@@ -8,8 +8,7 @@ Sensors::Sensors(std::shared_ptr<TMX> tmx) {
                     std::bind(&Sensors::callback, this, std::placeholders::_1));
 }
 
-size_t Sensors::add_sensor(uint8_t sens_num, SENSOR_TYPE type,
-                           std::vector<uint8_t> data,
+size_t Sensors::add_sensor(uint8_t sens_num, SENSOR_TYPE type, std::vector<uint8_t> data,
                            std::function<void(std::vector<uint8_t>)> callback) {
   // todo: send data to pico
   sensors.push_back(std::make_pair(type, callback));
@@ -43,11 +42,10 @@ size_t Sensors::add_sensor(uint8_t sens_num, SENSOR_TYPE type,
 void Sensors::add_sens(std::shared_ptr<Sensor_type> sensor) {
   auto mod_num = this->sensors.size();
   auto init_data = sensor->init_data();
-  std::cout << "adding sensor" << sensor->type << "data" << init_data[1]
-            << std::endl;
-  auto act_mod_num = add_sensor(
-      mod_num, sensor->type, init_data,
-      std::bind(&Sensor_type::data_callback, sensor, std::placeholders::_1));
+  std::cout << "adding sensor" << sensor->type << "data" << init_data[1] << std::endl;
+  auto act_mod_num =
+      add_sensor(mod_num, sensor->type, init_data,
+                 std::bind(&Sensor_type::data_callback, sensor, std::placeholders::_1));
 
   if (act_mod_num != mod_num) {
     std::cout << "Error adding sensor" << std::endl;

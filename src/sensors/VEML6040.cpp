@@ -7,7 +7,7 @@
 using namespace tmx_cpp;
 
 VEML6040_module::VEML6040_module(uint8_t i2c_port, uint8_t address, VEML6040_cb_t data_cb)
-: data_cb(data_cb), i2c_port(i2c_port), address(address) {
+    : data_cb(data_cb), i2c_port(i2c_port), address(address) {
   assert(this->address == 0x10);
   this->type = SENSOR_TYPE::VEML6040;
 }

@@ -6,15 +6,13 @@
 using namespace tmx_cpp;
 
 SSD1306_module::SSD1306_module(uint8_t i2c_port, uint8_t address, uint8_t width, uint8_t height)
-: i2c_port(i2c_port), address(address), width_(width), height_(height)
-{
+    : i2c_port(i2c_port), address(address), width_(width), height_(height) {
   type = MODULE_TYPE::TMX_SSD1306;
 }
 
 std::vector<uint8_t> SSD1306_module::init_data() { return {this->i2c_port, this->address}; }
 
-void SSD1306_module::data_callback(std::vector<uint8_t> data)
-{
+void SSD1306_module::data_callback(std::vector<uint8_t> data) {
   // std::cout << "R | OLED chardata = ";
   // for (auto i : data) {
   //   std::cout << std::hex << (uint)(i & 0xFF) << " ";
@@ -33,27 +31,27 @@ void SSD1306_module::data_callback(std::vector<uint8_t> data)
 
   // Recieves a message if the writing is finished.
   switch (msg_type) {
-    case TEXT_DONE:
-      text_promise.set_value(std::vector<uint8_t>(data.cbegin() + 1, data.cend()));
-      return;
-    case BINARY_DONE:
-      // LEN == 1
-      binary_promise.set_value(std::vector<uint8_t>(data.cbegin() + 1, data.cend()));
-      return;
-    default:
-      // Other cases shouldn't happen. Unless display is disabled
-      std::cerr << "An OLED Error message was Recieved: ";
-      for (auto i : data) std::cerr << std::hex << (uint)(i & 0xFF) << " ";
-      std::cerr << std::endl;
-      std::cerr << "The OLED probably gets deactivated now." << std::endl;
-      break;
+  case TEXT_DONE:
+    text_promise.set_value(std::vector<uint8_t>(data.cbegin() + 1, data.cend()));
+    return;
+  case BINARY_DONE:
+    // LEN == 1
+    binary_promise.set_value(std::vector<uint8_t>(data.cbegin() + 1, data.cend()));
+    return;
+  default:
+    // Other cases shouldn't happen. Unless display is disabled
+    std::cerr << "An OLED Error message was Recieved: ";
+    for (auto i : data)
+      std::cerr << std::hex << (uint)(i & 0xFF) << " ";
+    std::cerr << std::endl;
+    std::cerr << "The OLED probably gets deactivated now." << std::endl;
+    break;
   }
 
   return;
 }
 
-bool SSD1306_module::send_text(std::string text, std::chrono::milliseconds timeout)
-{
+bool SSD1306_module::send_text(std::string text, std::chrono::milliseconds timeout) {
   auto future_response = text_promise.get_future();
 
   // Truncate to char the character limit.
@@ -63,8 +61,8 @@ bool SSD1306_module::send_text(std::string text, std::chrono::milliseconds timeo
 
   for (int idx = 0; idx < truncated_text.length(); idx += max_msg_len) {
     auto len = (idx + max_msg_len <= truncated_text.length())
-                 ? max_msg_len
-                 : (truncated_text.length() % max_msg_len);
+                   ? max_msg_len
+                   : (truncated_text.length() % max_msg_len);
     auto text_segment = truncated_text.substr(idx, len);
 
     std::vector<uint8_t> data = {TEXT, (uint8_t)len};
@@ -99,9 +97,8 @@ bool SSD1306_module::send_text(std::string text, std::chrono::milliseconds timeo
 /// @brief Send an image to the SSD1306 OLED Screen
 /// @param img_buffer The image buffer with MONO8 encoding
 /// @return true if succesfull
-bool SSD1306_module::send_image(
-  uint8_t width, uint8_t height, uint8_t img_buffer[], std::chrono::milliseconds timeout)
-{
+bool SSD1306_module::send_image(uint8_t width, uint8_t height, uint8_t img_buffer[],
+                                std::chrono::milliseconds timeout) {
   // TODO: Timeout
 
   if (width != width_ || height != height_) {
@@ -129,9 +126,8 @@ bool SSD1306_module::send_image(
 
   for (uint8_t idx = 0; idx < compressed_buffer.size() / max_msg_len; idx++) {
     std::vector<uint8_t> data = {BINARY, idx};
-    data.insert(
-      data.end(), compressed_buffer.cbegin() + idx * max_msg_len,
-      compressed_buffer.cbegin() + (idx + 1) * max_msg_len);
+    data.insert(data.end(), compressed_buffer.cbegin() + idx * max_msg_len,
+                compressed_buffer.cbegin() + (idx + 1) * max_msg_len);
     send_module(data);
   }
   send_module({BINARY_DONE});
@@ -158,7 +154,6 @@ bool SSD1306_module::send_image(
   return true;
 }
 
-void SSD1306_module::attach_send_module(std::function<void(std::vector<uint8_t>)> send_module)
-{
+void SSD1306_module::attach_send_module(std::function<void(std::vector<uint8_t>)> send_module) {
   this->send_module = send_module;
 }
