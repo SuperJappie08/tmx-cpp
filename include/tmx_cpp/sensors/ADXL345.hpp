@@ -5,6 +5,8 @@
 
 namespace tmx_cpp {
 
+// TODO: Add calibration support (There are registers for this)
+
 using ADXL345_cb_t = std::function<void(std::array<float, 3> accelaration)>;
 class ADXL345_module : public Sensor_type {
 public:

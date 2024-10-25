@@ -25,35 +25,30 @@ void MPU9250_module::data_callback(std::vector<uint8_t> data) {
   assert(data.size() == sizeof(float) * (3 * 3 + 4));
   auto data_span = std::span(data);
 
-  std::vector<float> acceleration;
-  std::vector<float> gyro;
-  std::vector<float> magnetic_field;
-  std::vector<float> quaternion;
+  std::array<float, 3> acceleration;
+  std::array<float, 3> gyro;
+  std::array<float, 3> magnetic_field;
+  std::array<float, 4> quaternion;
 
   for (int acc_idx = 0; acc_idx < 3; acc_idx++) {
-    acceleration.push_back(
-      decode_float(data_span.subspan(acc_idx * sizeof(float)).first<sizeof(float)>()));
+    acceleration[acc_idx] =
+      decode_float(data_span.subspan(acc_idx * sizeof(float)).first<sizeof(float)>());
   }
 
   for (int gyro_idx = 3; gyro_idx < 6; gyro_idx++) {
-    gyro.push_back(
-      decode_float(data_span.subspan(gyro_idx * sizeof(float)).first<sizeof(float)>()));
+    gyro[gyro_idx - 3] =
+      decode_float(data_span.subspan(gyro_idx * sizeof(float)).first<sizeof(float)>());
   }
 
   for (int mag_idx = 6; mag_idx < 9; mag_idx++) {
-    magnetic_field.push_back(
-      decode_float(data_span.subspan(mag_idx * sizeof(float)).first<sizeof(float)>()));
+    magnetic_field[mag_idx - 6] =
+      decode_float(data_span.subspan(mag_idx * sizeof(float)).first<sizeof(float)>());
   }
 
   for (int q_idx = 9; q_idx < 13; q_idx++) {
-    quaternion.push_back(
-      decode_float(data_span.subspan(q_idx * sizeof(float)).first<sizeof(float)>()));
+    quaternion[q_idx - 9] =
+      decode_float(data_span.subspan(q_idx * sizeof(float)).first<sizeof(float)>());
   }
-
-  assert(acceleration.size() == 3);
-  assert(gyro.size() == 3);
-  assert(magnetic_field.size() == 3);
-  assert(quaternion.size() == 4);
 
   data_cb(acceleration, gyro, magnetic_field, quaternion);
 }
