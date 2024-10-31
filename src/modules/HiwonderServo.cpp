@@ -9,7 +9,7 @@ using namespace std::chrono_literals;
 
 HiwonderServo_module::HiwonderServo_module(
     uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin, std::vector<uint8_t> servo_ids,
-    std::function<void(std::vector<Servo_pos>)> position_cb) {
+    std::function<void(std::vector<std::tuple<uint8_t, Servo_pos>>)> position_cb) {
 
   this->servo_ids = servo_ids;
   this->uart_port = uart_port;
@@ -211,12 +211,12 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
   auto message_type = (HIWONDER_SERVO_RESPONSES)data[0];
   switch (message_type) {
   case HIWONDER_SERVO_RESPONSES::SERVO_POSITION: {
-    std::vector<Servo_pos> servo_positions;
+    std::vector<std::tuple<uint8_t, Servo_pos>> servo_positions;
     for (size_t i = 1; i < data.size(); i += 3) {
       Servo_pos pos;
       pos.id = servo_ids[data[i]];
       pos.angle = decode_u16(data_span.subspan(i + 1).first<2>());
-      servo_positions.push_back(pos);
+      servo_positions.push_back({data[i], pos});
     }
     position_cb(servo_positions);
     return;

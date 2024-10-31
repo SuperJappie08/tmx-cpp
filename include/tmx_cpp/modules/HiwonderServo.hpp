@@ -42,16 +42,10 @@ public:
     uint16_t angle;
     uint16_t time;
   };
-  HiwonderServo_module(uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin,
-                       std::vector<uint8_t> servo_ids,
-                       std::function<void(std::vector<Servo_pos>)> position_cb); // + some callbacks
-  // bool set_pwm(uint8_t channel, uint16_t high, uint16_t low=0);
-  // struct PWM_val {
-  //     uint8_t channel;
-  //     uint16_t high;
-  //     uint16_t low = 0;
-  // };
-  // bool set_multiple_pwm(std::vector<PWM_val> pwm_vals);
+  HiwonderServo_module(
+      uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin, std::vector<uint8_t> servo_ids,
+      std::function<void(std::vector<std::tuple<uint8_t, Servo_pos>>)> position_cb);
+
   void data_callback(std::vector<uint8_t> data); // when receiving data from the servos back
 
   bool set_single_servo(uint8_t servo_id, uint16_t angle, uint16_t time = 100);
@@ -70,7 +64,7 @@ public:
   uint8_t get_servo_num(uint8_t servo_id);
 
   std::vector<uint8_t> init_data();
-  std::function<void(std::vector<Servo_pos>)> position_cb;
+  std::function<void(std::vector<std::tuple<uint8_t, Servo_pos>>)> position_cb;
   void attach_send_module(std::function<void(std::vector<uint8_t>)> send_module);
 
 private:

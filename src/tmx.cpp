@@ -430,8 +430,8 @@ void TMX::write_servo(uint8_t pin, uint16_t duty_cycle) {
 void TMX::detach_servo(uint8_t pin) { this->sendMessage(TMX::MESSAGE_TYPE::SERVO_DETACH, {pin}); }
 
 void TMX::setScanDelay(uint8_t delay) {
-  if (delay < 5) {
-    delay = 5;
+  if (delay < 2) {
+    delay = 2;
   }
   this->sendMessage(TMX::MESSAGE_TYPE::SET_SCAN_DELAY, {delay});
 }
