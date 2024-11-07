@@ -383,6 +383,7 @@ void TMX::add_digital_callback(uint8_t pin, std::function<void(uint8_t, uint8_t)
 }
 
 void TMX::add_analog_callback(uint8_t pin, std::function<void(uint8_t, uint16_t)> callback) {
+  // FIXME: This is Pico specific code
   if (pin < 26 || pin > 30) { // only pins 26-30 are analog
     return;
   }
