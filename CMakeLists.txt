@@ -1,8 +1,6 @@
 # Minimum required CMake version
 cmake_minimum_required(VERSION 3.12)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum") # -Wall -Wextra
-                                                        # -Wpedantic -Werror")
+
 # Project name
 project(tmx_cpp)
 
@@ -38,6 +36,15 @@ target_link_libraries(tmx_cpp Boost::system Boost::thread async_serial)
 add_executable(${PROJECT_NAME}_test_serialization
   test/test_serialization.cpp
 )
+
+set_property(TARGET tmx_cpp ${PROJECT_NAME}_test_serialization PROPERTY CXX_STANDARD 20)
+# set_target_properties(tmx_cpp ${PROJECT_NAME}_test_serialization
+#                       PROPERTIES CXX_STANDARD 20
+#                       CMAKE_CXX_FLAGS )
+set_property(TARGET tmx_cpp ${PROJECT_NAME}_test_serialization APPEND PROPERTY CMAKE_CXX_FLAGS "-Wswitch-enum") # -Wall -Wextra
+# -Wpedantic -Werror")
+
+
 target_link_libraries(${PROJECT_NAME}_test_serialization tmx_cpp)
 
 add_test(NAME test_serialization
