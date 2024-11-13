@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: 
           - ubuntu-22.04 
-          - windows-11
+          - windows-latest
         compiler:
           - llvm-18
           - gcc-13
