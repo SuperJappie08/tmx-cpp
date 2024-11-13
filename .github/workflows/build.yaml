@@ -11,9 +11,11 @@ jobs:
       matrix:
         os: 
           - ubuntu-22.04 
+          - windows-11
         compiler:
-          - llvm-14
-          - gcc-11
+          - llvm-18
+          - gcc-13
+          - msvc
           # you can specify the version after `-` like `llvm-13.0.0`.
     steps:
       - uses: actions/checkout@v3
