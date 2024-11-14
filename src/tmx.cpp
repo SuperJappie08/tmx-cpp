@@ -10,6 +10,7 @@
 #include <utility>
 
 #include <tmx_cpp/serialization.hpp>
+#include <tmx_cpp/types.hpp>
 
 #ifdef TMX_HW_DEBUG
 #define POOL_SIZE 1

@@ -16,6 +16,7 @@
 
 #include "tmx_cpp/modules.hpp"
 #include "tmx_cpp/sensors.hpp"
+#include "tmx_cpp/types.hpp"
 
 namespace tmx_cpp {
 
