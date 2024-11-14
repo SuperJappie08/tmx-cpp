@@ -45,7 +45,7 @@ set_property(TARGET tmx_cpp ${PROJECT_NAME}_test_serialization APPEND PROPERTY C
 # -Wpedantic -Werror")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_definitions(_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
+  add_compile_definitions(_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS _LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION)
 endif()
 
 
