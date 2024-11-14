@@ -557,13 +557,34 @@ const std::vector<TMX::serial_port> TMX::accepted_ports = {
 };
 
 #include <boost/format.hpp> // std::format not yet supported
+
+/* This magic checks if std::filesystem is aviable, safes a lot of hassle on MacOS */
+#ifdef __has_include
+#if __has_include(<filesystem>)
 #include <filesystem>
+#else
+#include <boost/filesystem.hpp>
+#endif
+#else
+#include <boost/filesystem.hpp>
+#endif
+
 #include <iostream>
 #include <string>
 #include <tmx_cpp/tmx_util.hpp>
 std::vector<TMX::serial_port> TMX::get_available_ports() {
   std::vector<serial_port> port_names;
+
+#ifdef __has_include
+#if __has_include(<filesystem>)
   namespace fs = std::filesystem;
+#else
+  namespace fs = boost::filesystem;
+#endif
+#else
+  namespace fs = boost::filesystem;
+#endif
+
   fs::path p("/dev/serial/by-id");
   try {
     if (!exists(p)) {
