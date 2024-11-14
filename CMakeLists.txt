@@ -44,6 +44,10 @@ set_property(TARGET tmx_cpp ${PROJECT_NAME}_test_serialization PROPERTY CXX_STAN
 set_property(TARGET tmx_cpp ${PROJECT_NAME}_test_serialization APPEND PROPERTY CMAKE_CXX_FLAGS "-Wswitch-enum") # -Wall -Wextra
 # -Wpedantic -Werror")
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_definitions(_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
+endif()
+
 
 target_link_libraries(${PROJECT_NAME}_test_serialization tmx_cpp)
 
