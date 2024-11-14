@@ -31,6 +31,7 @@ add_library(tmx_cpp
 )
 
 # Link Boost libraries
+# TODO: is Boost::thread necessary?
 target_link_libraries(tmx_cpp Boost::system Boost::thread async_serial)
 
 add_executable(${PROJECT_NAME}_test_serialization

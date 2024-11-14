@@ -267,10 +267,10 @@ class AsyncSerialImpl : private boost::noncopyable {
 public:
   AsyncSerialImpl() : backgroundThread(), open(false), error(false) {}
 
-  boost::thread backgroundThread;  ///< Thread that runs read operations
+  std::thread backgroundThread;  ///< Thread that runs read operations
   bool open;                       ///< True if port open
   bool error;                      ///< Error flag
-  mutable boost::mutex errorMutex; ///< Mutex for access to error
+  mutable std::mutex errorMutex; ///< Mutex for access to error
 
   int fd; ///< File descriptor for serial port
 
@@ -415,7 +415,7 @@ void AsyncSerial::open(const std::string &devname, unsigned int baud_rate,
   setErrorStatus(false); // If we get here, no error
   pimpl->open = true;    // Port is now open
 
-  thread t(bind(&AsyncSerial::doRead, this));
+  thread t(boost::bind(&AsyncSerial::doRead, this));
   pimpl->backgroundThread.swap(t);
 }
 

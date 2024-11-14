@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 // #include <ranges>
-#include <boost/thread.hpp>
+#include <thread>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -15,7 +15,7 @@
 #ifdef TMX_HW_DEBUG
 #define POOL_SIZE 1
 #else
-#define POOL_SIZE boost::thread::hardware_concurrency()
+#define POOL_SIZE std::thread::hardware_concurrency()
 #endif
 
 using namespace tmx_cpp;
