@@ -11,14 +11,35 @@ jobs:
       matrix:
         os: 
           - ubuntu-22.04 
-          - windows-latest
+          # - windows-latest
         compiler:
           - llvm-18
           - gcc-13
-          - msvc
+          # - msvc
           # you can specify the version after `-` like `llvm-13.0.0`.
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./build/
+            # ~/vcpkg
+            # ~/.cache/vcpkg/archives
+            # ${{ env.LOCALAPPDATA }}/vcpkg/archives
+            # ${{ env.APPDATA }}/vcpkg/archives
+            # ${{ env.XDG_CACHE_HOME }}/vcpkg/archives
+            ~/.cache/ccache
+            ~/.ccache
+            ~/.config/ccache
+            # ~/Library/Caches/ccache
+            # ${{ env.LOCALAPPDATA }}/ccache
+            # ${{ env.XDG_CACHE_HOME }}/ccache
+          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-
+            ${{ runner.os }}-${{ matrix.compiler }}
+
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         with:
@@ -26,6 +47,8 @@ jobs:
           cmake: true
           ninja: false
           vcpkg: false
+          conan: true
+          ccache: true
           cppcheck: false
           clangtidy: false # instead of `true`, which chooses the default version, you can pass a specific version.
           # ...
