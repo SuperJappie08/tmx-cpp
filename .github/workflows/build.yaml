@@ -55,6 +55,7 @@ jobs:
       - name: Build
         run: |
          sudo apt install -y libboost-dev libboost-thread-dev libboost-system-dev libboost-chrono-dev
+         export CMAKE_CXX_COMPILER_LAUNCHER=ccache
          cmake -B build .
          cd build
          make
