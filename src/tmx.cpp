@@ -621,7 +621,7 @@ uint8_t TMX::get_id(const TMX::serial_port &port) {
     buffer.insert(buffer.end(), data, data + len);
   });
   buffer.clear();
-  serial->write({1, (uint8_t)MESSAGE_TYPE::GET_ID});                     // send a get id message
+  serial->write({1, (uint8_t)MESSAGE_TYPE::GET_ID});            // send a get id message
   std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pico should respond within 100ms
   serial->close();
   auto out = TMX::parse_buffer_for_message(buffer, 3, (uint8_t)MESSAGE_IN_TYPE::GET_ID_REPORT);
@@ -642,7 +642,7 @@ bool TMX::set_id(const TMX::serial_port &port, uint8_t id) {
   });
   buffer.clear();
   std::cout << "setting to id: " << (int)id << std::endl;
-  serial->write({2, (uint8_t)MESSAGE_TYPE::SET_ID, (char)id});           // send a set id message
+  serial->write({2, (uint8_t)MESSAGE_TYPE::SET_ID, (char)id});  // send a set id message
   std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // pico should respond within 100ms
   serial->close();
   if (buffer.size() < 3) {
