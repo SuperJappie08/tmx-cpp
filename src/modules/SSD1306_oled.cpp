@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "tmx_cpp/modules/SSD1306_oled.hpp"
+#include "tmx_cpp/types.hpp"
 
 using namespace tmx_cpp;
 

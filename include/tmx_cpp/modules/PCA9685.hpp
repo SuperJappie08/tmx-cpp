@@ -1,7 +1,6 @@
 #pragma once
 #include "tmx_cpp/modules/Module_t.hpp"
 #include <functional>
-#include <memory>
 #include <stdint.h>
 #include <vector>
 
@@ -17,7 +16,7 @@ public:
     uint16_t high;
     uint16_t low = 0;
   };
-  bool set_multiple_pwm(std::shared_ptr<std::vector<PWM_val>> pwm_vals);
+  bool set_multiple_pwm(std::vector<PWM_val> pwm_vals);
 
   bool set_mircoseconds(uint8_t channel, uint16_t microseconds);
 
