@@ -30,6 +30,7 @@ public:
     SET_OFFSET = 7,
     GET_OFFSET = 8,
     SET_VOLTAGE_RANGE = 9,
+    MOTOR_MODE_WRITE = 10,
   };
   enum HIWONDER_SERVO_RESPONSES : uint8_t {
     SERVO_POSITION = 0,
@@ -60,7 +61,7 @@ public:
   bool set_offset(uint8_t servo_id, uint16_t offset);
   std::optional<std::tuple<uint16_t, uint16_t>> get_range(uint8_t servo_id);
   std::optional<uint16_t> get_offset(uint8_t servo_id);
-
+  bool motor_mode_write(uint8_t servo_id, int16_t speed);
   uint8_t get_servo_num(uint8_t servo_id);
 
   std::vector<uint8_t> init_data();

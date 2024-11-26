@@ -254,3 +254,10 @@ void HiwonderServo_module::attach_send_module(
     std::function<void(std::vector<uint8_t>)> send_module) {
   this->send_module = send_module;
 }
+
+bool HiwonderServo_module::motor_mode_write(uint8_t servo_id, int16_t speed) {
+  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::MOTOR_MODE_WRITE, get_servo_num(servo_id)};
+  append_range(data, encode_i16(speed));
+  this->send_module(data);
+  return true;
+}
