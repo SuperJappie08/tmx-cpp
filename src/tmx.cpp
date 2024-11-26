@@ -13,22 +13,17 @@
 #include <tmx_cpp/serialization.hpp>
 #include <tmx_cpp/types.hpp>
 
-#ifdef TMX_HW_DEBUG
-#define POOL_SIZE 1
-#else
-#define POOL_SIZE std::thread::hardware_concurrency()
-#endif
-
 using namespace tmx_cpp;
 
-TMX::TMX(std::function<void()> stop_func, std::string port)
-    : parsePool(POOL_SIZE), stop_func(stop_func) {
+TMX::TMX(std::function<void()> stop_func, std::string port, size_t parse_pool_size)
+    : parsePool(std::max<size_t>(parse_pool_size, 1)), stop_func(stop_func) {
+  using namespace std::placeholders;
+
   this->serial = std::make_shared<CallbackAsyncSerial>(port, 115200);
   this->serial->setCallback([this](const char *data, size_t len) { this->callback(data, len); });
 
   this->ping_thread = std::thread(&TMX::ping_task, this);
-  this->add_callback(MESSAGE_IN_TYPE::PONG_REPORT,
-                     std::bind(&TMX::ping_callback, this, std::placeholders::_1));
+  this->add_callback(MESSAGE_IN_TYPE::PONG_REPORT, std::bind(&TMX::ping_callback, this, _1));
   // this->add_callback(
   //   MESSAGE_IN_TYPE::ANALOG_REPORT, [](std::vector<uint8_t> t) { t[1] = 3; });
 }

@@ -67,7 +67,8 @@ public:
   // Sensors sensors;
 
 public:
-  TMX(std::function<void()> stop_func, std::string port = "/dev/ttyACM0");
+  TMX(std::function<void()> stop_func, std::string port = "/dev/ttyACM0",
+      size_t parse_pool_size = std::thread::hardware_concurrency());
   ~TMX();
   enum PIN_MODES : uint8_t {
     DIGITAL_INPUT = 0,
