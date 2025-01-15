@@ -31,12 +31,14 @@ public:
     GET_OFFSET = 8,
     SET_VOLTAGE_RANGE = 9,
     MOTOR_MODE_WRITE = 10,
+    ADD_SERVO = 11,
   };
   enum HIWONDER_SERVO_RESPONSES : uint8_t {
     SERVO_POSITION = 0,
     SERVO_VERIFY = HIWONDER_SERVO_COMMANDS::VERIFY_ID,
     SERVO_RANGE = HIWONDER_SERVO_COMMANDS::GET_RANGE,
     SERVO_OFFSET = HIWONDER_SERVO_COMMANDS::GET_OFFSET,
+    SERVO_ADDED = HIWONDER_SERVO_COMMANDS::ADD_SERVO,
   };
   struct Servo_pos {
     uint8_t id;
@@ -46,6 +48,8 @@ public:
   HiwonderServo_module(
       uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin, std::vector<uint8_t> servo_ids,
       std::function<void(std::vector<std::tuple<uint8_t, Servo_pos>>)> position_cb);
+
+  std::optional<uint8_t> register_servo_id(uint8_t servo_id);
 
   void data_callback(std::vector<uint8_t> data); // when receiving data from the servos back
 
@@ -77,6 +81,7 @@ private:
   std::optional<std::promise<std::tuple<uint8_t, bool>>> verify_id_promise;
   std::optional<std::promise<std::tuple<uint8_t, std::tuple<uint16_t, uint16_t>>>> range_promise;
   std::optional<std::promise<std::tuple<uint8_t, uint16_t>>> offset_promise;
+  std::optional<std::promise<std::tuple<uint8_t, uint8_t>>> add_servo_promise;
 };
 
 } // namespace tmx_cpp
