@@ -91,9 +91,13 @@ bool HiwonderServo_module::verify_id(uint8_t servo_id) {
   auto ok = false;
 
   // TODO: Wait probably toolong
-  if (future.wait_for(100ms) == std::future_status::ready) {
+  if (future.wait_for(300ms) == std::future_status::ready) {
     auto [id, ok_value] = future.get();
-    assert(id == servo_id);
+    // assert(id == servo_id);
+    if(id != servo_id) {
+      std::cout << "Servo id("<< (int)servo_id<<") not id ("<<(int)id<<")"<<std::endl;
+      ok_value = false;
+    }
     ok = ok_value;
   }
 
@@ -222,8 +226,12 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
     return;
   } break;
   case HIWONDER_SERVO_RESPONSES::SERVO_VERIFY: {
-    assert(verify_id_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
-    verify_id_promise->set_value({(uint8_t)data[1], (bool)data[2]});
+    // assert(verify_id_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
+    if(!verify_id_promise.has_value()) {
+      return;
+    } else {
+      verify_id_promise->set_value({(uint8_t)data[1], (bool)data[2]});
+    }
     return;
   } break;
   case HIWONDER_SERVO_RESPONSES::SERVO_RANGE: {
