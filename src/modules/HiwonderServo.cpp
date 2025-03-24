@@ -7,6 +7,9 @@
 using namespace tmx_cpp;
 using namespace std::chrono_literals;
 
+// TODO: It might be wise to add a mutex on the bus commmands which result in a response, since they
+// currently crash if called while waiting on the other.
+
 HiwonderServo_module::HiwonderServo_module(
     uint8_t uart_port, uint8_t rx_pin, uint8_t tx_pin, std::vector<uint8_t> servo_ids,
     std::function<void(std::vector<std::tuple<uint8_t, Servo_pos>>)> position_cb) {
@@ -18,6 +21,49 @@ HiwonderServo_module::HiwonderServo_module(
   // TODO: Use optional futures to determine if callback of normal
   this->position_cb = position_cb;
   type = MODULE_TYPE::HIWONDER_SERVO;
+}
+
+// Returns the pico servo_num
+std::optional<uint8_t> HiwonderServo_module::register_servo_id(uint8_t servo_id) {
+  std::optional<uint8_t> servo_num;
+
+  if (servo_id > 253) {
+    std::cout << "A HiWonder Servo id must be in the range 0-253, provided id '"
+              << (unsigned int)servo_id << "' is outside of this range." << std::endl;
+    return servo_num;
+  }
+
+  // Check if the servo_id was already registered
+  if (std::find(this->servo_ids.cbegin(), this->servo_ids.cend(), servo_id) != servo_ids.cend()) {
+    std::cout << "HiWonder Servo with ID '" << (unsigned int)servo_id << "' was already registered."
+              << std::endl;
+
+    servo_num = get_servo_num(servo_id);
+    return servo_num;
+  }
+
+  assert(!add_servo_promise.has_value());
+  add_servo_promise = std::promise<std::tuple<uint8_t, uint8_t>>();
+
+  auto future = add_servo_promise->get_future();
+  // Do not send a servo index, but an actuall ID.
+  std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::ADD_SERVO, servo_id};
+  this->send_module(data);
+
+  // TODO: Wait probably toolong
+  if (future.wait_for(100ms) == std::future_status::ready) {
+    auto [id, idx] = future.get();
+    assert(id == servo_id);
+
+    if (this->servo_ids.size() == idx)
+      this->servo_ids.push_back(servo_id);
+
+    servo_num = idx;
+  }
+
+  add_servo_promise.reset();
+
+  return servo_num;
 }
 
 bool HiwonderServo_module::set_single_servo(uint8_t servo_id, uint16_t angle, uint16_t time) {
@@ -247,6 +293,11 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
     assert(offset_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
     offset_promise->set_value(
         {(uint8_t)data[1], decode_u16(data_span.subspan<2, sizeof(uint16_t)>())});
+    return;
+  } break;
+  case HIWONDER_SERVO_RESPONSES::SERVO_ADDED: {
+    assert(add_servo_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
+    add_servo_promise->set_value({(uint8_t)data[1], (uint8_t)data[2]});
     return;
   } break;
 
