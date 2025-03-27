@@ -179,10 +179,10 @@ bool HiwonderServo_module::set_voltage_range(uint8_t servo_id, float minf, float
   return true;
 }
 
-bool HiwonderServo_module::set_offset(uint8_t servo_id, uint16_t offset) {
+bool HiwonderServo_module::set_offset(uint8_t servo_id, int16_t offset) {
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::SET_OFFSET, get_servo_num(servo_id)}; //,
   // data.reserve(data.size() + sizeof(uint16_t));
-  append_range(data, encode_u16(offset));
+  append_range(data, encode_i16(offset));
 
   this->send_module(data);
   return true;
@@ -211,19 +211,19 @@ std::optional<std::tuple<uint16_t, uint16_t>> HiwonderServo_module::get_range(ui
   return range;
 }
 
-std::optional<uint16_t> HiwonderServo_module::get_offset(uint8_t servo_id) {
+std::optional<int16_t> HiwonderServo_module::get_offset(uint8_t servo_id) {
   assert(!offset_promise.has_value());
-  offset_promise = std::promise<std::tuple<uint8_t, uint16_t>>();
+  offset_promise = std::promise<std::tuple<uint8_t, int16_t>>();
 
   auto servo_num = get_servo_num(servo_id);
   auto future = offset_promise->get_future();
   std::vector<uint8_t> data = {HIWONDER_SERVO_COMMANDS::GET_OFFSET, servo_num};
   this->send_module(data);
 
-  std::optional<uint16_t> offset;
+  std::optional<int16_t> offset;
 
   // TODO: Wait probably toolong
-  if (future.wait_for(100ms) == std::future_status::ready) {
+  if (future.wait_for(300ms) == std::future_status::ready) {
     auto [id, offset_value] = future.get();
 
     assert(id == servo_num);
@@ -292,7 +292,7 @@ void HiwonderServo_module::data_callback(std::vector<uint8_t> data) {
   case HIWONDER_SERVO_RESPONSES::SERVO_OFFSET: {
     assert(offset_promise.has_value()); // TODO: REPLACE WITH WARNING INSTEAD OF EXIT -1
     offset_promise->set_value(
-        {(uint8_t)data[1], decode_u16(data_span.subspan<2, sizeof(uint16_t)>())});
+        {(uint8_t)data[1], decode_i16(data_span.subspan<2, sizeof(int16_t)>())});
     return;
   } break;
   case HIWONDER_SERVO_RESPONSES::SERVO_ADDED: {

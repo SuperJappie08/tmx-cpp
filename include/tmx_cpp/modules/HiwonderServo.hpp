@@ -62,9 +62,9 @@ public:
   bool verify_id(uint8_t servo_id);
   bool set_range(uint8_t servo_id, uint16_t min, uint16_t max);
   bool set_voltage_range(uint8_t servo_id, float min, float max);
-  bool set_offset(uint8_t servo_id, uint16_t offset);
+  bool set_offset(uint8_t servo_id, int16_t offset);
   std::optional<std::tuple<uint16_t, uint16_t>> get_range(uint8_t servo_id);
-  std::optional<uint16_t> get_offset(uint8_t servo_id);
+  std::optional<int16_t> get_offset(uint8_t servo_id);
   bool motor_mode_write(uint8_t servo_id, int16_t speed);
   uint8_t get_servo_num(uint8_t servo_id);
 
@@ -80,7 +80,7 @@ private:
   // std::optional<std::promise<void>> position_promise;
   std::optional<std::promise<std::tuple<uint8_t, bool>>> verify_id_promise;
   std::optional<std::promise<std::tuple<uint8_t, std::tuple<uint16_t, uint16_t>>>> range_promise;
-  std::optional<std::promise<std::tuple<uint8_t, uint16_t>>> offset_promise;
+  std::optional<std::promise<std::tuple<uint8_t, int16_t>>> offset_promise;
   std::optional<std::promise<std::tuple<uint8_t, uint8_t>>> add_servo_promise;
 };
 
