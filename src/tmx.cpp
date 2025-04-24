@@ -551,6 +551,7 @@ bool TMX::check_port(const std::string &port) {
 const std::vector<TMX::serial_port> TMX::accepted_ports = {
     {"", 0x1a86, 0x7523}, // CH340
     {"", 0x2E8A, 0x000A}, // RP2040
+    {"", 0x2E8A, 0x0009}, // RP2350
 };
 
 #include <boost/format.hpp> // std::format not yet supported
