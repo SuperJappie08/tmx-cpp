@@ -35,14 +35,12 @@ add_library(tmx_cpp
 target_link_libraries(tmx_cpp Boost::system Boost::thread async_serial)
 
 install(TARGETS tmx_cpp
-  EXPORT tmx_cpp-targets
+  # EXPORT tmx_cpp-export
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 install(DIRECTORY include/
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  TYPE INCLUDE
   FILES_MATCHING PATTERN "*.hpp")
 
 add_executable(${PROJECT_NAME}_test_serialization
