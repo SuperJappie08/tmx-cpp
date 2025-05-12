@@ -20,3 +20,6 @@ Makefile
 *.vcxproj
 *.xcodeproj
 *.user
+
+# ROS Specific
+COLCON_IGNORE
