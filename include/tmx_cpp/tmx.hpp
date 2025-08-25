@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <utility>
+
 #include "async_serial/AsyncSerial.h"
 #include <algorithm>
 #include <cassert>
