@@ -1,10 +1,11 @@
-#define _USE_MATh_DEFINES
+#define _USE_MATH_DEFINES
 
 #include <bit>
 #include <cassert>
 #include <iostream>
 #include <span>
 #include <cmath>
+#include <algorithm>
 
 #include <tmx_cpp/sensors/AS5600.hpp>
 #include <tmx_cpp/serialization.hpp>
