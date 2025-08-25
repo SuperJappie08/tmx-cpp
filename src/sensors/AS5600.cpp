@@ -1,11 +1,11 @@
 #define _USE_MATH_DEFINES
 
+#include <algorithm>
 #include <bit>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <span>
-#include <cmath>
-#include <algorithm>
 
 #include <tmx_cpp/sensors/AS5600.hpp>
 #include <tmx_cpp/serialization.hpp>
@@ -53,9 +53,8 @@ void AS5600_tmx_sensor::data_callback(std::vector<uint8_t> data) {
     uint16_t angle_ticks =
         decode_u16(data_span.subspan(i * sizeof(uint16_t), sizeof(uint16_t))
                        .first<sizeof(uint16_t)>());
-    float angle_rad =
-        static_cast<float>(angle_ticks) *
-        (2.0f * M_PI / 4096.0f); // Convert ticks to radians
+    float angle_rad = static_cast<float>(angle_ticks) *
+                      (2.0f * M_PI / 4096.0f); // Convert ticks to radians
     results.emplace_back(channel, angle_rad, angle_ticks);
   }
 
