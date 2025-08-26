@@ -1013,6 +1013,8 @@ const std::vector<TMX::serial_port> TMX::accepted_ports = {
 #include <iostream>
 #include <string>
 #include <tmx_cpp/tmx_util.hpp>
+
+#if !defined(TMX_CPP_WINDOWS)
 std::vector<TMX::serial_port> TMX::get_available_ports() {
   std::vector<serial_port> port_names;
   namespace fs = std::filesystem;
@@ -1057,6 +1059,7 @@ std::vector<TMX::serial_port> TMX::get_available_ports() {
   // std::sort(port_names.begin(), port_names.end());
   return port_names;
 }
+#endif
 
 bool TMX::is_accepted_port(const serial_port &port) {
   for (const auto &accepted_port : TMX::accepted_ports) {

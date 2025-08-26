@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "tmx_cpp/board_features.hpp"
+#include "tmx_cpp/compatibility.hpp"
 #include "tmx_cpp/message_types.hpp"
 #include "tmx_cpp/modules.hpp"
 #include "tmx_cpp/sensors.hpp"
@@ -145,7 +146,9 @@ public:
   };
   static const std::vector<serial_port> accepted_ports;
 
+#if !defined(TMX_CPP_WINDOWS)
   static std::vector<serial_port> get_available_ports();
+#endif
   static bool is_accepted_port(const serial_port &port);
   static uint8_t get_id(const serial_port &port);
   static bool set_id(const serial_port &port, uint8_t id);

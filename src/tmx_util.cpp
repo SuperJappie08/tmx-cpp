@@ -2,6 +2,7 @@
 
 namespace tmx_cpp {
 
+#if !defined(TMX_CPP_WINDOWS)
 std::string exec(const std::string &cmd) {
   std::array<char, 128> buffer;
   std::string result;
@@ -17,5 +18,6 @@ std::string exec(const std::string &cmd) {
   }
   return result;
 }
+#endif
 
 } // namespace tmx_cpp
