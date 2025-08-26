@@ -49,11 +49,13 @@ set_property(TARGET tmx_cpp ${PROJECT_NAME}_test_serialization PROPERTY CXX_STAN
 set_property(TARGET tmx_cpp ${PROJECT_NAME}_test_serialization APPEND PROPERTY CMAKE_CXX_FLAGS "-Wswitch-enum") # -Wall -Wextra
 # -Wpedantic -Werror")
 
+if(NOT (MSVC OR MSYS OR MINGW))
 add_executable(${PROJECT_NAME}_test_module
   test/test_module.cpp 
    )
 set_property(TARGET ${PROJECT_NAME}_test_module PROPERTY CXX_STANDARD 20)
-
+target_link_libraries(${PROJECT_NAME}_test_module tmx_cpp)
+endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_definitions(_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS _LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION)
@@ -61,7 +63,6 @@ endif()
 
 
 target_link_libraries(${PROJECT_NAME}_test_serialization tmx_cpp)
-target_link_libraries(${PROJECT_NAME}_test_module tmx_cpp)
 # add_test(NAME test_serialization # This test isn't built by default, will fail colcon test
 #     COMMAND ${PROJECT_NAME}_test_serialization)
 
